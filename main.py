@@ -27,7 +27,7 @@ for affix in active_affixes:
         found_affix = True
         break
 if not found_affix:
-    print("No matching affix found after checking all active affixes")
+    print("No matching affix found after checking all active affixes.")
 
 #item_name = Resources.autogui.get_item_name()
 #before, _, after = item_name.partition(active_base)
