@@ -18,15 +18,29 @@ active_base = Resources.autogui.check_active_base(base_names)
 #    print(affix[1]) 1 will return Prefix or Suffix
 
 found_affix = False
-while not found_affix:
-    Resources.autogui.copy_item()
-    for affix in active_affixes:
-        check_paste = Resources.autogui.check_clipboard_for(affix[0])
-        if check_paste:
-            print(f"Found the modifier '{affix[0]}'")
-            found_affix = True
-        else:
-            found_affix = True
+
+Resources.autogui.copy_item()
+for affix in active_affixes:
+    check_paste = Resources.autogui.check_clipboard_for(affix[0])
+    if check_paste:
+        print(f"Found the modifier '{affix[0]}'")
+        found_affix = True
+        break
+if not found_affix:
+    print("No matching affix found after checking all active affixes.")
+
+#item_name = Resources.autogui.get_item_name()
+#before, _, after = item_name.partition(active_base)
+#prefix = before.strip()
+#suffix = after.strip()
+#if prefix and suffix:
+#    print(f"Prefix is {prefix} and suffix is {suffix}")
+#elif prefix and not suffix:
+#    print(f"Prefix is {prefix}")
+#elif not prefix and suffix:
+#    print(f"suffix is {suffix}")
+#else:
+#    print("This is a normal item")
 
 
 

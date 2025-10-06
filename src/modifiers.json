@@ -5,6 +5,9 @@
         },
         {
             "name": "Opal Sceptre"
+        },
+        {
+            "name": "Vaal Gauntlets"
         }
     ],
     "modifiers": [    
@@ -14,14 +17,30 @@
             "active": 1
         },
         {
+            "name": "Healthy",
+            "affix": "Prefix",
+            "active": 1
+        },
+        {
             "name": "of Consumption",
+            "affix": "Suffix",
+            "active": 1
+        },
+        {
+            "name": "Lacquered",
             "affix": "Suffix",
             "active": 0
         },
         {
-            "name": "of Incision",
+            "name": "of Ease",
+            "affix": "Suffix",
+            "active": 0
+        },
+        {
+            "name": "of Youth",
             "affix": "Suffix",
             "active": 1
         }
+        
     ]
 }

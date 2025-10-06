@@ -34,9 +34,23 @@ def check_active_base(bases):
     for base in bases:
         if base in full_item_desc:
             return base
-        else:
-            print("Base not viable.")
     return None
+
+def get_item_name():
+    copy_item()
+    item_text = pyperclip.paste()
+
+    if not item_text:
+        print("Error: Clipboard empty after copy_item().")
+        return None
+    
+    lines = item_text.splitlines()
+    if len(lines) < 3:
+        print("Error: Item text too short.")
+        return None
+    
+    item_name = lines[2].strip()
+    return item_name
 
 
 def use_alt():
