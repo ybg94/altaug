@@ -1,0 +1,27 @@
+{
+    "bases": [
+        {
+            "name": "Spine Bow"
+        },
+        {
+            "name": "Opal Sceptre"
+        }
+    ],
+    "modifiers": [    
+        {
+            "name": "Heavy",
+            "affix": "Prefix",
+            "active": 1
+        },
+        {
+            "name": "of Consumption",
+            "affix": "Suffix",
+            "active": 0
+        },
+        {
+            "name": "of Incision",
+            "affix": "Suffix",
+            "active": 1
+        }
+    ]
+}
