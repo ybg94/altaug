@@ -17,10 +17,20 @@ class RedirectText(io.StringIO):
         dpg.set_value(self.tag, current + input)
 
 def capture_image_position(image_file_name: str) -> tuple[int, int] | None:
+    width, height = pyautogui.size()
+    match height:
+        case 1080:
+            pass
+        case 1440:
+            split = image_file_name.split(os.path.extsep)
+            assert(len(split) == 2)
+            image_file_name = f"{split[0]}_1440{os.path.extsep}{split[1]}"
+        case _:
+            raise NotImplementedError("Auto-configure is only supported for 1080p and 1440p resolutions.")
+
+    image_path = os.path.join('Images', image_file_name)
     try:
-        image_path = os.path.join('Images', image_file_name)
         x, y = pyautogui.locateCenterOnScreen(image_path)
-        pyautogui.moveTo(x, y)
         print(f"Found image {image_file_name} at ({x}, {y})")
         return (x, y)
 
