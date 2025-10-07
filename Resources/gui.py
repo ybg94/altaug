@@ -52,6 +52,15 @@ def capture_alt_position() -> None:
 def capture_aug_position() -> None:
     capture_and_record_position('aug_in_currancy_tab.png', 'Coordinates', 'aug')
 
+def toggle_autogui_failsafe() -> None:
+    value = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
+    print(f"Failsafe checkbox state is {value}")
+    pyautogui.FAILSAFE = value
+
+def set_pyautogui_pause() -> None:
+    value = dpg.get_value(gui_tags.PYAUTOGUI_PAUSE_TAG)
+    pyautogui.PAUSE = value
+
 def init_gui() -> None:
     dpg.create_context()
     dpg.configure_app(init_file=os.path.join('src', 'gui_layout.ini'), docking=True, docking_space=True)
@@ -64,7 +73,7 @@ def init_gui() -> None:
     except Exception as ex:
         print('Unable to load Bahnschrift font, using default')
 
-    dpg.create_viewport(title="Alt-Aug GUI", width=800, height=600)
+    dpg.create_viewport(title="Alt-Aug GUI", width=800, height=650)
 
     configuration_window = dpg.generate_uuid()
     crafting_window = dpg.generate_uuid()
@@ -75,6 +84,26 @@ def init_gui() -> None:
         with dpg.group(horizontal=True):
             dpg.add_button(label="Capture Alteraton orb position", callback=capture_alt_position)
             dpg.add_button(label="Capture Augmentation orb position", callback=capture_aug_position)
+        with dpg.group(horizontal=True):
+            dpg.add_checkbox(
+                label="Enable PyAutoGUI Failsafe",
+                default_value=True,
+                tag=gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG,
+                callback=toggle_autogui_failsafe
+            )
+            dpg.add_input_float(
+                tag=gui_tags.PYAUTOGUI_PAUSE_TAG,
+                default_value=0.03,
+                max_value=1.0,
+                max_clamped=True,
+                min_value=0.025,
+                min_clamped=True,
+                step=0.005,
+                callback=set_pyautogui_pause,
+                width=100
+            )
+            dpg.add_text(default_value="Set PAUSE (Recommended 0.03)")
+        dpg.add_checkbox(label="Enable performance logging", tag=gui_tags.PERFORMANCE_LOGGING_TAG)
 
     with dpg.window(tag=crafting_window, label="Crafting goal input"):
         dpg.add_text("Enter regex for 'Regex' mode (supports poe.re with 'Match an open affix = OFF'):")
@@ -83,12 +112,15 @@ def init_gui() -> None:
         dpg.add_button(label="Start crafting", callback=crafting_processor.start_crafting)
 
     with dpg.window(tag=script_log, label="Script log"):
-        dpg.add_input_text(
-            tag=gui_tags.OUTPUT_LOG_TAG,
-            multiline=True,
-            readonly=True,
-            height=250
-        )
+        with dpg.group(horizontal=True):
+            dpg.add_input_text(
+                tag=gui_tags.OUTPUT_LOG_TAG,
+                multiline=True,
+                readonly=True,
+                width=700,
+                height=250
+            )
+            dpg.add_button(label="Clear", callback=lambda: dpg.set_value(gui_tags.OUTPUT_LOG_TAG, ""))
 
     sys.stdout = RedirectText(gui_tags.OUTPUT_LOG_TAG)
 

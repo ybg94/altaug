@@ -6,6 +6,7 @@ import pyperclip
 import Resources.autogui
 import Resources.gui_tags as gui_tags
 import Resources.read_file
+import Resources.time_helpers as rtime
 
 def use_json(max_attempts: int) -> None:
     active_affixes, base_names = Resources.read_file.read_json_data()
@@ -86,6 +87,7 @@ def use_json(max_attempts: int) -> None:
             #alt 
             #loop and it will check affixes at start of loop again
 
+@rtime.timeit
 def match_item_description(regex: re.Pattern) -> bool:
     Resources.autogui.copy_item()
     item_description: str = pyperclip.paste()
