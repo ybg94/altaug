@@ -7,6 +7,9 @@
             "name": "Opal Sceptre"
         },
         {
+            "name": "Hubris Circlet"
+        },
+        {
             "name": "Vaal Gauntlets"
         }
     ],
@@ -14,7 +17,7 @@
         {
             "name": "Heavy",
             "affix": "Prefix",
-            "active": 1
+            "active": 0
         },
         {
             "name": "Healthy",
@@ -24,7 +27,7 @@
         {
             "name": "of Consumption",
             "affix": "Suffix",
-            "active": 1
+            "active": 0
         },
         {
             "name": "Lacquered",

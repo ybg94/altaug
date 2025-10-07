@@ -39,7 +39,7 @@ while not found_affix and attempts < MAX_ATTEMPTS:
 
     # If still not found, use Alteration and reroll
     if not found_affix:
-        print(f"No affix found (attempt #{attempts}). Using Alteration orb...")
+        #print(f"No affix found (attempt #{attempts}). Using Alteration orb...")
         Resources.autogui.use_alt()
 
         # Copy the new item and analyze prefixes/suffixes
@@ -54,10 +54,10 @@ while not found_affix and attempts < MAX_ATTEMPTS:
             if prefix and suffix:
                 print(f"Prefix: {prefix} | Suffix: {suffix}")
             elif prefix and not suffix:
-                print("No suffix found → Using Augmentation orb.")
+                #print("No suffix found → Using Augmentation orb.")
                 Resources.autogui.use_aug()
             elif not prefix and suffix:
-                print("No prefix found → Using Augmentation orb.")
+                #print("No prefix found → Using Augmentation orb.")
                 Resources.autogui.use_aug()
             else:
                 print("Normal item (no affixes).")
