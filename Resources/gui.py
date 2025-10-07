@@ -133,6 +133,7 @@ def init_gui() -> None:
             dpg.add_button(label="Clear", callback=lambda: dpg.set_value(gui_tags.OUTPUT_LOG_TAG, ""))
 
     sys.stdout = RedirectText(gui_tags.OUTPUT_LOG_TAG)
+    set_pyautogui_pause()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()
