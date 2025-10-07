@@ -47,10 +47,10 @@ def capture_and_record_position(image_file_name: str, config_category: str, conf
         cfg.update_config(config_values)
 
 def capture_alt_position() -> None:
-    capture_and_record_position('alt_in_currancy_tab.png', 'Coordinates', 'alt')
+    capture_and_record_position('alt_in_currency_tab.png', 'Coordinates', 'alt')
 
 def capture_aug_position() -> None:
-    capture_and_record_position('aug_in_currancy_tab.png', 'Coordinates', 'aug')
+    capture_and_record_position('aug_in_currency_tab.png', 'Coordinates', 'aug')
 
 def toggle_autogui_failsafe() -> None:
     value = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
@@ -82,7 +82,7 @@ def init_gui() -> None:
     with dpg.window(tag=configuration_window, label="Configuration"):
         dpg.add_text(default_value="Must restart script to apply config changes")
         with dpg.group(horizontal=True):
-            dpg.add_button(label="Capture Alteraton orb position", callback=capture_alt_position)
+            dpg.add_button(label="Capture Alteration orb position", callback=capture_alt_position)
             dpg.add_button(label="Capture Augmentation orb position", callback=capture_aug_position)
         with dpg.group(horizontal=True):
             dpg.add_checkbox(
