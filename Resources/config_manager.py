@@ -1,6 +1,5 @@
 import configparser
 import os
-from typing import Any
 
 def update_config(items: list[tuple[str, str, str]]) -> None:
     print(f"Updating config with: {items}")
