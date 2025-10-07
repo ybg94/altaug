@@ -55,6 +55,15 @@ def capture_aug_position() -> None:
 def init_gui() -> None:
     dpg.create_context()
     dpg.configure_app(init_file=os.path.join('src', 'gui_layout.ini'), docking=True, docking_space=True)
+
+    try:
+        with dpg.font_registry():
+            dpg.add_font('C:\\Windows\\Fonts\\Bahnschrift.ttf', 16, tag="best_font")
+
+        dpg.bind_font("best_font")
+    except Exception as ex:
+        print('Unable to load Bahnschrift font, using default')
+
     dpg.create_viewport(title="Alt-Aug GUI", width=800, height=600)
 
     configuration_window = dpg.generate_uuid()
@@ -68,7 +77,7 @@ def init_gui() -> None:
             dpg.add_button(label="Capture Augmentation orb position", callback=capture_aug_position)
 
     with dpg.window(tag=crafting_window, label="Crafting goal input"):
-        dpg.add_text("Enter regex for 'Regex' mode:")
+        dpg.add_text("Enter regex for 'Regex' mode (supports poe.re with 'Match an open affix = OFF'):")
         dpg.add_input_text(tag=gui_tags.REGEX_INPUT_TAG)
         dpg.add_input_int(tag=gui_tags.MAX_ATTEMPT_INPUT_TAG, label="Max crafting attempts", default_value=10)
         dpg.add_button(label="Start crafting", callback=crafting_processor.start_crafting)

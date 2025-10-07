@@ -1,16 +1,14 @@
 from datetime import datetime
-import dearpygui.dearpygui as dpg
 import time
+import re
+import dearpygui.dearpygui as dpg
+import pyperclip
 import Resources.autogui
 import Resources.gui_tags as gui_tags
-import Resources.read_config
 import Resources.read_file
 
 def use_json(max_attempts: int) -> None:
-    CONFIG_DATA = Resources.read_config.read_config()
     active_affixes, base_names = Resources.read_file.read_json_data()
-    #sleep to give user 3 seconds to switch to PoE client
-    time.sleep(3)
     active_base = Resources.autogui.check_active_base(base_names)
 
     #for affix in active_affixes:
@@ -88,13 +86,43 @@ def use_json(max_attempts: int) -> None:
             #alt 
             #loop and it will check affixes at start of loop again
 
-        
-def use_regex(regex_text: str, max_attempts: int) -> None:
-    print(f"You have entered: {regex_text}")
+def match_item_description(regex: re.Pattern) -> bool:
+    Resources.autogui.copy_item()
+    item_description: str = pyperclip.paste()
 
-def start_crafting(sender, app_data, user_data):
+    match = regex.search(item_description)
+    if match:
+        return True
+    
+    return False
+
+def use_regex(regex_text: str, max_attempts: int) -> None:
+    print(f"Using regex method with pattern: {regex_text}")
+    regex = re.compile(regex_text, flags=re.RegexFlag.MULTILINE)
+
+    for attempt in range(max_attempts):
+        if match_item_description(regex):
+            print(f"Attempt #{attempt}: success")
+            break
+
+        Resources.autogui.use_alt()
+        if match_item_description(regex):
+            print(f"Attempt #{attempt}: success")
+            break
+
+        Resources.autogui.use_aug()
+        if match_item_description(regex):
+            print(f"Attempt #{attempt}: success")
+            break
+
+        print(f"Attempt #{attempt}: fail...")
+
+def start_crafting() -> None:
     regex_input: str = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
     max_attempts: int = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
+
+    #sleep to give user 3 seconds to switch to PoE client
+    time.sleep(3)
 
     start_time: datetime = datetime.now()
     print(f"🔹 Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
