@@ -5,11 +5,22 @@
         },
         {
             "name": "Opal Sceptre"
+        },
+        {
+            "name": "Hubris Circlet"
+        },
+        {
+            "name": "Vaal Gauntlets"
         }
     ],
     "modifiers": [    
         {
             "name": "Heavy",
+            "affix": "Prefix",
+            "active": 0
+        },
+        {
+            "name": "Healthy",
             "affix": "Prefix",
             "active": 1
         },
@@ -19,9 +30,20 @@
             "active": 0
         },
         {
-            "name": "of Incision",
+            "name": "Lacquered",
+            "affix": "Suffix",
+            "active": 0
+        },
+        {
+            "name": "of Ease",
+            "affix": "Suffix",
+            "active": 0
+        },
+        {
+            "name": "of Youth",
             "affix": "Suffix",
             "active": 1
         }
+        
     ]
 }
