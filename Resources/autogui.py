@@ -1,19 +1,28 @@
+import logging
 import pyperclip #used to see what was copied.
 import pyautogui
-import time
-from . import read_config
+from . import config_manager
+from . import decorators
 
-CONFIG_DATA = read_config.read_config()
+CONFIG_DATA = config_manager.read_config()
 screen_width, screen_height = pyautogui.size()
 
+@decorators.timeit
 def hover_item():
     x_item=int(screen_width * CONFIG_DATA['item_x_coordinate_percent'])
     y_item=int(screen_height * CONFIG_DATA['item_y_coordinate_percent'])
     pyautogui.moveTo(x_item,y_item)
 
+@decorators.timeit
 def copy_item():
     hover_item()
     pyautogui.hotkey("ctrl", "c")
+
+@decorators.timeit
+def get_item_advanced_description() -> str:
+    hover_item()
+    pyautogui.hotkey("ctrl", "alt", "c")
+    return pyperclip.paste()
 
 def check_clipboard_for(keyword):
     text = pyperclip.paste()
@@ -24,11 +33,10 @@ def check_clipboard_for(keyword):
         return False
 
 def check_active_base(bases):
-
     copy_item()
     item_text = pyperclip.paste()
     if not item_text:
-        print("Error: Clipboard empty after copy_item().")
+        logging.error("Clipboard empty after copy_item().")
         return None
 
     for base in bases:
@@ -40,18 +48,18 @@ def get_item_name(item_text=None):
     copy_item()
     item_text = pyperclip.paste()
     if not item_text:
-        print("Error: Clipboard empty after copy_item().")
+        logging.error("Clipboard empty after copy_item().")
         return None
 
     lines = item_text.splitlines()
     if len(lines) < 3:
-        print("Error: Item text too short.")
+        logging.error("Item text too short.")
         return None
 
     item_name = lines[2].strip()
     return item_name
 
-
+@decorators.timeit
 def use_alt():
     x_alt=int(screen_width * CONFIG_DATA['alt_x_coordinate_percent'])
     y_alt=int(screen_height * CONFIG_DATA['alt_y_coordinate_percent'])
@@ -60,6 +68,7 @@ def use_alt():
     hover_item()
     pyautogui.leftClick()
 
+@decorators.timeit
 def use_aug():
     x_aug=int(screen_width * CONFIG_DATA['aug_x_coordinate_percent'])
     y_aug=int(screen_height * CONFIG_DATA['aug_y_coordinate_percent'])
