@@ -4,14 +4,14 @@ import re
 import time
 import dearpygui.dearpygui as dpg
 import pyperclip
-import Resources.autogui
-import Resources.gui_tags as gui_tags
-import Resources.read_file
-import Resources.time_helpers as rtime
+from . import autogui
+from . import gui_tags
+from . import read_file
+from . import decorators
 
 def use_json(max_attempts: int) -> None:
-    active_affixes, base_names = Resources.read_file.read_json_data()
-    active_base = Resources.autogui.check_active_base(base_names)
+    active_affixes, base_names = read_file.read_json_data()
+    active_base = autogui.check_active_base(base_names)
 
     #for affix in active_affixes:
     #    print(affix[0]) 0 will return the affix Name
@@ -24,23 +24,23 @@ def use_json(max_attempts: int) -> None:
         attempts += 1
 
         # Copy item text
-        Resources.autogui.copy_item()
+        autogui.copy_item()
 
         # Check clipboard against all known affixes
         for affix in active_affixes:
-            if Resources.autogui.check_clipboard_for(affix[0]):
-                logging.info(f"✅ Found the modifier '{affix[0]}' on attempt #{attempts}")
+            if autogui.check_clipboard_for(affix[0]):
+                logging.info(f"Found the modifier '{affix[0]}' on attempt #{attempts}")
                 found_affix = True
                 break
 
         # If still not found, use Alteration and reroll
         if not found_affix:
             #logging.info(f"No affix found (attempt #{attempts}). Using Alteration orb...")
-            Resources.autogui.use_alt()
+            autogui.use_alt()
 
             # Copy the new item and analyze prefixes/suffixes
-            Resources.autogui.copy_item()
-            item_name = Resources.autogui.get_item_name()
+            autogui.copy_item()
+            item_name = autogui.get_item_name()
 
             if item_name:
                 before, _, after = item_name.partition(active_base)
@@ -51,25 +51,25 @@ def use_json(max_attempts: int) -> None:
                     logging.info(f"Prefix: {prefix} | Suffix: {suffix}")
                 elif prefix and not suffix:
                     #logging.info("No suffix found → Using Augmentation orb.")
-                    Resources.autogui.use_aug()
+                    autogui.use_aug()
                 elif not prefix and suffix:
                     #logging.info("No prefix found → Using Augmentation orb.")
-                    Resources.autogui.use_aug()
+                    autogui.use_aug()
                 else:
                     logging.info("Normal item (no affixes).")
             else:
                 logging.error("Could not read item name after alteration.")
 
     if not found_affix:
-        logging.info(f"⚠️ No matching affix found after {max_attempts} attempts.")
+        logging.info(f"No matching affix found after {max_attempts} attempts.")
     else:
-        logging.info(f"🎯 Success after {attempts} attempts.")
+        logging.info(f"Success after {attempts} attempts.")
 
     # found_affix = False
     # while not found_affix:
-    #     Resources.autogui.copy_item()
+    #     autogui.copy_item()
     #     for affix in active_affixes:
-    #         check_paste = Resources.autogui.check_clipboard_for(affix[0])
+    #         check_paste = autogui.check_clipboard_for(affix[0])
     #         if check_paste:
     #             print(f"Found the modifier '{affix[0]}'")
     #             found_affix = True
@@ -88,9 +88,10 @@ def use_json(max_attempts: int) -> None:
             #alt 
             #loop and it will check affixes at start of loop again
 
-@rtime.timeit
+@decorators.timeit
+@decorators.log_item_affixes
 def match_item_description(regex: re.Pattern) -> bool:
-    Resources.autogui.copy_item()
+    autogui.copy_item()
     item_description: str = pyperclip.paste()
 
     match = regex.search(item_description)
@@ -101,19 +102,19 @@ def match_item_description(regex: re.Pattern) -> bool:
 
 def use_regex(regex_text: str, max_attempts: int) -> None:
     logging.info(f"Using regex method with pattern: {regex_text}")
-    regex = re.compile(regex_text, flags=re.RegexFlag.MULTILINE)
+    regex = re.compile(regex_text, flags=re.MULTILINE)
+
+    if match_item_description(regex):
+        logging.info(f"Item already has correct modifiers")
+        return
 
     for attempt in range(max_attempts):
+        autogui.use_alt()
         if match_item_description(regex):
             logging.info(f"Attempt #{attempt}: success")
             break
 
-        Resources.autogui.use_alt()
-        if match_item_description(regex):
-            logging.info(f"Attempt #{attempt}: success")
-            break
-
-        Resources.autogui.use_aug()
+        autogui.use_aug()
         if match_item_description(regex):
             logging.info(f"Attempt #{attempt}: success")
             break
@@ -128,7 +129,7 @@ def start_crafting() -> None:
     time.sleep(3)
 
     start_time: datetime = datetime.now()
-    logging.info(f"🔹 Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logging.info(f"Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
     if (len(regex_input) > 0):
         use_regex(regex_input, max_attempts)
@@ -138,4 +139,4 @@ def start_crafting() -> None:
     # --- End timestamp ---
     end_time = datetime.now()
     elapsed = end_time - start_time
-    logging.info(f"🔹 Finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Elapsed: {elapsed})")
+    logging.info(f"Finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Elapsed: {elapsed})")
