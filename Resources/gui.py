@@ -69,7 +69,7 @@ def init_gui() -> None:
 
     try:
         with dpg.font_registry():
-            with dpg.font('C:\\Windows\\Fonts\\seguiemj.ttf', 16) as emoji_font:
+            with dpg.font(os.path.join(os.environ['WINDIR'], 'Fonts', 'seguiemj.ttf'), 16) as emoji_font:
                 dpg.add_font_range_hint(dpg.mvFontRangeHint_Default)
                 dpg.add_font_range(0x2600, 0x26FF) # Miscellaneous Symbols
                 dpg.add_font_range(0x2700, 0x27BF) # Dingbats
