@@ -1,20 +1,11 @@
-import dearpygui.dearpygui as dpg
-import io
+import logging
 import os
+import dearpygui.dearpygui as dpg
 import pyautogui
-import sys
-import Resources.config_manager as cfg
-import Resources.crafting_processor as crafting_processor
-import Resources.gui_tags as gui_tags
-
-class RedirectText(io.StringIO):
-    def __init__(self, tag) -> None:
-        super().__init__()
-        self.tag = tag
-
-    def write(self, input: str) -> None:
-        current: str = dpg.get_value(self.tag)
-        dpg.set_value(self.tag, current + input)
+from . import config_manager as cfg
+from . import crafting_processor as crafting_processor
+from . import gui_tags as gui_tags
+from . import logging_handlers
 
 def capture_image_position(image_file_name: str) -> tuple[int, int] | None:
     width, height = pyautogui.size()
@@ -31,14 +22,14 @@ def capture_image_position(image_file_name: str) -> tuple[int, int] | None:
     image_path = os.path.join('Images', image_file_name)
     try:
         x, y = pyautogui.locateCenterOnScreen(image_path)
-        print(f"Found image {image_file_name} at ({x}, {y})")
+        logging.info(f"Found image {image_file_name} at ({x}, {y})")
         return (x, y)
 
-    except pyautogui.ImageNotFoundException as ex:
-        print(f"Wasn't able to find the image on screen: {image_file_name}, {ex}")
+    except pyautogui.ImageNotFoundException:
+        logging.error(f"Wasn't able to find the image on screen: {image_file_name}.")
         return None
-    except Exception as ex:
-        print(f"An unexpected error occurred: {ex}")
+    except Exception:
+        logging.error(f"An unexpected error occurred.", exc_info=True)
         return None
     
 def capture_and_record_position(image_file_name: str, config_category: str, config_item_prefix: str) -> None:
@@ -64,11 +55,12 @@ def capture_aug_position() -> None:
 
 def toggle_autogui_failsafe() -> None:
     value = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
-    print(f"Failsafe checkbox state is {value}")
+    logging.debug(f"Failsafe checkbox state is {value}.")
     pyautogui.FAILSAFE = value
 
 def set_pyautogui_pause() -> None:
     value = dpg.get_value(gui_tags.PYAUTOGUI_PAUSE_TAG)
+    logging.debug(f"Setting PAUSE to {value}.")
     pyautogui.PAUSE = value
 
 def init_gui() -> None:
@@ -80,8 +72,8 @@ def init_gui() -> None:
             dpg.add_font('C:\\Windows\\Fonts\\Bahnschrift.ttf', 16, tag="best_font")
 
         dpg.bind_font("best_font")
-    except Exception as ex:
-        print('Unable to load Bahnschrift font, using default')
+    except Exception:
+        logging.error('Unable to load Bahnschrift font, using default.', exc_info=True)
 
     dpg.create_viewport(title="Alt-Aug GUI", width=800, height=650)
 
@@ -132,7 +124,10 @@ def init_gui() -> None:
             )
             dpg.add_button(label="Clear", callback=lambda: dpg.set_value(gui_tags.OUTPUT_LOG_TAG, ""))
 
-    sys.stdout = RedirectText(gui_tags.OUTPUT_LOG_TAG)
+    gui_log_handler = logging_handlers.GuiLogHandler(tag=gui_tags.OUTPUT_LOG_TAG, level=logging.INFO)
+    gui_log_handler.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s'))
+    logging.getLogger().addHandler(gui_log_handler)
+
     set_pyautogui_pause()
 
     dpg.setup_dearpygui()

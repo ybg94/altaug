@@ -1,6 +1,7 @@
 import json
+import logging
 
-def read_json_data():
+def read_json_data() -> tuple[list, list]:
     filepath = 'src/modifiers.json'
     active_affixes = []
     base_names = []
@@ -19,13 +20,13 @@ def read_json_data():
                     active_affixes.append((modifier['name'], modifier['affix']))
 
     except FileNotFoundError:
-        print(f"Error: File not found at {filepath}")
+        logging.error(f"Error: File not found at {filepath}.", exc_info=True)
         return [], []
     except json.JSONDecodeError:
-        print(f"Error: Invalid JSON format in {filepath}")
+        logging.error(f"Error: Invalid JSON format in {filepath}.", exc_info=True)
         return [], []
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+    except Exception:
+        logging.error(f"An unexpected error occurred.", exc_info=True)
         return [], []
     
     return active_affixes, base_names

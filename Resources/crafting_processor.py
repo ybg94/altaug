@@ -1,6 +1,7 @@
 from datetime import datetime
-import time
+import logging
 import re
+import time
 import dearpygui.dearpygui as dpg
 import pyperclip
 import Resources.autogui
@@ -28,13 +29,13 @@ def use_json(max_attempts: int) -> None:
         # Check clipboard against all known affixes
         for affix in active_affixes:
             if Resources.autogui.check_clipboard_for(affix[0]):
-                print(f"✅ Found the modifier '{affix[0]}' on attempt #{attempts}")
+                logging.info(f"✅ Found the modifier '{affix[0]}' on attempt #{attempts}")
                 found_affix = True
                 break
 
         # If still not found, use Alteration and reroll
         if not found_affix:
-            #print(f"No affix found (attempt #{attempts}). Using Alteration orb...")
+            #logging.info(f"No affix found (attempt #{attempts}). Using Alteration orb...")
             Resources.autogui.use_alt()
 
             # Copy the new item and analyze prefixes/suffixes
@@ -47,22 +48,22 @@ def use_json(max_attempts: int) -> None:
                 suffix = after.strip()
 
                 if prefix and suffix:
-                    print(f"Prefix: {prefix} | Suffix: {suffix}")
+                    logging.info(f"Prefix: {prefix} | Suffix: {suffix}")
                 elif prefix and not suffix:
-                    #print("No suffix found → Using Augmentation orb.")
+                    #logging.info("No suffix found → Using Augmentation orb.")
                     Resources.autogui.use_aug()
                 elif not prefix and suffix:
-                    #print("No prefix found → Using Augmentation orb.")
+                    #logging.info("No prefix found → Using Augmentation orb.")
                     Resources.autogui.use_aug()
                 else:
-                    print("Normal item (no affixes).")
+                    logging.info("Normal item (no affixes).")
             else:
-                print("Error: could not read item name after alteration.")
+                logging.error("Could not read item name after alteration.")
 
     if not found_affix:
-        print(f"⚠️ No matching affix found after {max_attempts} attempts.")
+        logging.info(f"⚠️ No matching affix found after {max_attempts} attempts.")
     else:
-        print(f"🎯 Success after {attempts} attempts.")
+        logging.info(f"🎯 Success after {attempts} attempts.")
 
     # found_affix = False
     # while not found_affix:
@@ -99,25 +100,25 @@ def match_item_description(regex: re.Pattern) -> bool:
     return False
 
 def use_regex(regex_text: str, max_attempts: int) -> None:
-    print(f"Using regex method with pattern: {regex_text}")
+    logging.info(f"Using regex method with pattern: {regex_text}")
     regex = re.compile(regex_text, flags=re.RegexFlag.MULTILINE)
 
     for attempt in range(max_attempts):
         if match_item_description(regex):
-            print(f"Attempt #{attempt}: success")
+            logging.info(f"Attempt #{attempt}: success")
             break
 
         Resources.autogui.use_alt()
         if match_item_description(regex):
-            print(f"Attempt #{attempt}: success")
+            logging.info(f"Attempt #{attempt}: success")
             break
 
         Resources.autogui.use_aug()
         if match_item_description(regex):
-            print(f"Attempt #{attempt}: success")
+            logging.info(f"Attempt #{attempt}: success")
             break
 
-        print(f"Attempt #{attempt}: fail...")
+        logging.info(f"Attempt #{attempt}: fail...")
 
 def start_crafting() -> None:
     regex_input: str = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
@@ -127,7 +128,7 @@ def start_crafting() -> None:
     time.sleep(3)
 
     start_time: datetime = datetime.now()
-    print(f"🔹 Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logging.info(f"🔹 Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
     if (len(regex_input) > 0):
         use_regex(regex_input, max_attempts)
@@ -137,4 +138,4 @@ def start_crafting() -> None:
     # --- End timestamp ---
     end_time = datetime.now()
     elapsed = end_time - start_time
-    print(f"🔹 Finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Elapsed: {elapsed})")
+    logging.info(f"🔹 Finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Elapsed: {elapsed})")

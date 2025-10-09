@@ -1,9 +1,10 @@
+import logging
 import pyperclip #used to see what was copied.
 import pyautogui
-from . import read_config
+from . import config_manager
 from . import time_helpers as rtime
 
-CONFIG_DATA = read_config.read_config()
+CONFIG_DATA = config_manager.read_config()
 screen_width, screen_height = pyautogui.size()
 
 @rtime.timeit
@@ -26,11 +27,10 @@ def check_clipboard_for(keyword):
         return False
 
 def check_active_base(bases):
-
     copy_item()
     item_text = pyperclip.paste()
     if not item_text:
-        print("Error: Clipboard empty after copy_item().")
+        logging.error("Clipboard empty after copy_item().")
         return None
 
     for base in bases:
@@ -42,12 +42,12 @@ def get_item_name(item_text=None):
     copy_item()
     item_text = pyperclip.paste()
     if not item_text:
-        print("Error: Clipboard empty after copy_item().")
+        logging.error("Clipboard empty after copy_item().")
         return None
 
     lines = item_text.splitlines()
     if len(lines) < 3:
-        print("Error: Item text too short.")
+        logging.error("Item text too short.")
         return None
 
     item_name = lines[2].strip()
