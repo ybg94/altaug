@@ -29,7 +29,7 @@ def use_json(max_attempts: int) -> None:
         # Check clipboard against all known affixes
         for affix in active_affixes:
             if autogui.check_clipboard_for(affix[0]):
-                logging.info(f"Found the modifier '{affix[0]}' on attempt #{attempts}")
+                logging.info(f"✅ Found the modifier '{affix[0]}' on attempt #{attempts}")
                 found_affix = True
                 break
 
@@ -61,9 +61,9 @@ def use_json(max_attempts: int) -> None:
                 logging.error("Could not read item name after alteration.")
 
     if not found_affix:
-        logging.info(f"No matching affix found after {max_attempts} attempts.")
+        logging.info(f"⚠️ No matching affix found after {max_attempts} attempts.")
     else:
-        logging.info(f"Success after {attempts} attempts.")
+        logging.info(f"🎯 Success after {attempts} attempts.")
 
     # found_affix = False
     # while not found_affix:
@@ -129,7 +129,7 @@ def start_crafting() -> None:
     time.sleep(3)
 
     start_time: datetime = datetime.now()
-    logging.info(f"Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
+    logging.info(f"🔹 Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
     if (len(regex_input) > 0):
         use_regex(regex_input, max_attempts)
@@ -139,4 +139,4 @@ def start_crafting() -> None:
     # --- End timestamp ---
     end_time = datetime.now()
     elapsed = end_time - start_time
-    logging.info(f"Finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Elapsed: {elapsed})")
+    logging.info(f"🔹 Finished at {end_time.strftime('%Y-%m-%d %H:%M:%S')} (Elapsed: {elapsed})")

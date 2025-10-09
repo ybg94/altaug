@@ -69,9 +69,13 @@ def init_gui() -> None:
 
     try:
         with dpg.font_registry():
-            dpg.add_font('C:\\Windows\\Fonts\\Bahnschrift.ttf', 16, tag="best_font")
+            with dpg.font('C:\\Windows\\Fonts\\seguiemj.ttf', 16) as emoji_font:
+                dpg.add_font_range_hint(dpg.mvFontRangeHint_Default)
+                dpg.add_font_range(0x2600, 0x26FF) # Miscellaneous Symbols
+                dpg.add_font_range(0x2700, 0x27BF) # Dingbats
+                dpg.add_font_range(0x1F300, 0x1F6FF) # Misc Symbols and Pictographs
 
-        dpg.bind_font("best_font")
+        dpg.bind_font(emoji_font)
     except Exception:
         logging.error('Unable to load Bahnschrift font, using default.', exc_info=True)
 
