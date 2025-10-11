@@ -25,7 +25,7 @@ def init_gui() -> None:
     except Exception:
         logging.error('Unable to load Bahnschrift font, using default.', exc_info=True)
 
-    dpg.create_viewport(title="Alt-Aug GUI")
+    dpg.create_viewport(title="Alt-Aug GUI", width=800)
 
     configuration_window_tag = dpg.generate_uuid()
     crafting_window_tag = dpg.generate_uuid()

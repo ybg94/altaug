@@ -12,8 +12,9 @@ def init(crafting_window_tag: int | str) -> None:
             dpg.add_text("Select crafting target:")
             dpg.add_combo(tag=gui_tags.CRAFTING_TARGET_COMBO_TAG, items=constants.CRAFTING_TARGETS, default_value=constants.CRAFTING_TARGETS[0], width=128)
 
-        dpg.add_text("RegEx input (crafting stops when RegEx matches the item):")
-        dpg.add_input_text(tag=gui_tags.REGEX_INPUT_TAG, height=48)
+        dpg.add_text("RegEx input (crafting stops when RegEx matches the item)")
+        dpg.add_text("When copying from poe.re make sure to NOT include quotes")
+        dpg.add_input_text(tag=gui_tags.REGEX_INPUT_TAG, height=48, width=764)
 
         with dpg.group(horizontal=True):
             dpg.add_text(default_value="Max crafting attempts:")

@@ -1,0 +1,21 @@
+Armour:
+  Lich's Circlet:
+    Another circlet regex: Hello there
+    Regex title Three: Regex string 3
+    Yet another test: General Kenobi
+  Vaal Gauntlets:
+    New regex: New regex added
+  Warlock Boots:
+    Regex title One: Regex string 1
+    Regex title Two: Edited regex 2
+Map:
+  Tier 16:
+    Regex title Seven: Regex string 7
+  Tier 17:
+    Regex title Five: Regex string 5
+    Regex title Six: Regex string 6
+Weapon:
+  Opal Sceptre:
+    New scepter regex: New regex test
+  Spine Bow:
+    Regex title Four: Regex string 4
