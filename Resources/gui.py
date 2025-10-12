@@ -40,7 +40,7 @@ def init_gui() -> None:
     gui_log_handler.setFormatter(logging.Formatter('[%(asctime)s][%(levelname)s] %(message)s'))
     logging.getLogger().addHandler(gui_log_handler)
 
-    configuration_window.set_pyautogui_pause()
+    configuration_window.__set_pyautogui_pause()
 
     dpg.setup_dearpygui()
     dpg.show_viewport()
