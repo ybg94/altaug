@@ -1,5 +1,6 @@
-import os
 import logging
+import os
+import time
 import dearpygui.dearpygui as dpg
 import pyautogui
 from .. import config_manager as cfg
@@ -45,30 +46,69 @@ def capture_and_record_position(image_file_name: str, config_category: str, conf
         ]
 
         cfg.update_config(config_values)
+    pass
 
-def capture_alt_position() -> None:
-    capture_and_record_position('alt_in_currency_tab.png', 'Coordinates', 'alt')
+def __wait_for_confirmation(poll_rate:int = 20, failsafe_seconds: int = 10) -> bool:
+    for _ in range(0, poll_rate * failsafe_seconds):
+        if dpg.is_key_down(dpg.mvKey_Spacebar):
+            return True
+        
+        if dpg.is_key_down(dpg.mvKey_Escape):
+            return False
+        
+        time.sleep(1 / poll_rate)
+    return False
 
-def capture_aug_position() -> None:
-    capture_and_record_position('aug_in_currency_tab.png', 'Coordinates', 'aug')
+def __get_target_position() -> tuple[int, int] | None:
+    if __wait_for_confirmation():
+        return pyautogui.position()
+    
+    return None
 
-def toggle_autogui_failsafe() -> None:
+def __record_position(sender, app_data, user_data: tuple[str, str]) -> None:
+    dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=True)
+
+    position = __get_target_position()
+    if position:
+        x, y = position
+        width, height = pyautogui.size()
+        ratio_x = x / width
+        ratio_y = y / height
+
+        config_items = [
+            (user_data[0], f'{user_data[1]}_x', '%.3f' % ratio_x),
+            (user_data[0], f'{user_data[1]}_y', '%.3f' % ratio_y),
+        ]
+        cfg.update_config(config_items)
+        pass
+
+    dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=False)    
+    pass
+
+def __toggle_autogui_failsafe() -> None:
     value = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
     logging.debug(f"Failsafe checkbox state is {value}.")
     pyautogui.FAILSAFE = value
+    pass
 
-def set_pyautogui_pause() -> None:
+def __set_pyautogui_pause() -> None:
     value = dpg.get_value(gui_tags.PYAUTOGUI_PAUSE_TAG)
     logging.debug(f"Setting PAUSE to {value}.")
     pyautogui.PAUSE = value
+    pass
 
 def init(configuration_window_tag: int | str) -> None:
+    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=178, height=60, no_resize=True, no_move=True):
+        dpg.add_text(default_value="Press Space to record")
+        dpg.add_text(default_value="Press Esc to cancel")
+        pass
+
     with dpg.window(tag=configuration_window_tag, label="Configuration", no_close=True):
         dpg.add_text(default_value="Must restart script to apply config changes")
 
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alteration orb position", callback=capture_alt_position)
-            elements.add_button(label="Capture Augmentation orb position", callback=capture_aug_position)
+            elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=('Coordinates', 'alt'))
+            elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=('Coordinates', 'aug'))
 
         with dpg.group(horizontal=True):
             dpg.add_text(default_value="Set pause after each PyAutoGui action:")
@@ -80,7 +120,7 @@ def init(configuration_window_tag: int | str) -> None:
                 min_value=0.025,
                 min_clamped=True,
                 step=0.005,
-                callback=set_pyautogui_pause,
+                callback=__set_pyautogui_pause,
                 width=100
             )
 
@@ -88,6 +128,6 @@ def init(configuration_window_tag: int | str) -> None:
             label="Enable PyAutoGUI Failsafe",
             default_value=True,
             tag=gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG,
-            callback=toggle_autogui_failsafe
+            callback=__toggle_autogui_failsafe
         )
         dpg.add_checkbox(label="Enable performance logging", tag=gui_tags.PERFORMANCE_LOGGING_TAG)
