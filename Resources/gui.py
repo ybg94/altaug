@@ -4,13 +4,29 @@ import dearpygui.dearpygui as dpg
 from . import crafting_processor as crafting_processor
 from . import gui_tags as gui_tags
 from . import logging_handlers
-from Resources.GuiModules import configuration_window
-from Resources.GuiModules import crafting_window
-from Resources.GuiModules import log_window
-from Resources.GuiModules import regex_library_modal
+from .config_manager import manager
+from .GuiModules import configuration_window
+from .GuiModules import crafting_window
+from .GuiModules import log_window
+from .GuiModules import regex_library_modal
+
+def __save_state_to_config() -> None:
+    config = manager.cfg
+
+    config.app_settings.pyautogui_pause = dpg.get_value(gui_tags.PYAUTOGUI_PAUSE_TAG)
+    config.app_settings.enable_pyautogui_failsafe = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
+    config.app_settings.enable_performance_logging = dpg.get_value(gui_tags.PERFORMANCE_LOGGING_TAG)
+
+    config.last_state.crafting_target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
+    config.last_state.regex_string = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
+    config.last_state.crafting_attempts = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
+
+    manager.save_config(config)
+    pass
 
 def init_gui() -> None:
     dpg.create_context()
+    dpg.set_exit_callback(__save_state_to_config)
     dpg.configure_app(init_file=os.path.join('src', 'gui_layout.ini'), docking=True, docking_space=True)
 
     try:

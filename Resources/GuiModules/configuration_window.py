@@ -117,7 +117,7 @@ def init(configuration_window_tag: int | str) -> None:
             dpg.add_text(default_value="Set pause after each PyAutoGui action:")
             dpg.add_input_float(
                 tag=gui_tags.PYAUTOGUI_PAUSE_TAG,
-                default_value=0.03,
+                default_value=manager.cfg.app_settings.pyautogui_pause,
                 max_value=1.0,
                 max_clamped=True,
                 min_value=0.025,
@@ -128,9 +128,13 @@ def init(configuration_window_tag: int | str) -> None:
             )
 
         dpg.add_checkbox(
-            label="Enable PyAutoGUI Failsafe",
-            default_value=True,
             tag=gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG,
+            label="Enable PyAutoGUI Failsafe",
+            default_value=manager.cfg.app_settings.enable_pyautogui_failsafe,
             callback=__toggle_autogui_failsafe
         )
-        dpg.add_checkbox(label="Enable performance logging", tag=gui_tags.PERFORMANCE_LOGGING_TAG)
+        dpg.add_checkbox(
+            tag=gui_tags.PERFORMANCE_LOGGING_TAG,
+            label="Enable performance logging",
+            default_value=manager.cfg.app_settings.enable_performance_logging
+        )
