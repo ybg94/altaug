@@ -1,13 +1,15 @@
 from datetime import datetime
+from typing import Callable
 import logging
 import re
 import time
 import dearpygui.dearpygui as dpg
 import pyperclip
+from . import decorators
 from . import autogui
 from . import gui_tags
 from . import read_file
-from . import decorators
+from . import item_processing
 
 def use_json(max_attempts: int) -> None:
     active_affixes, base_names = read_file.read_json_data()
@@ -88,8 +90,20 @@ def use_json(max_attempts: int) -> None:
             #alt 
             #loop and it will check affixes at start of loop again
 
+def __apply_craft(func: Callable[[], None]) -> item_processing.ItemInfo:
+    func()
+
+    advanced_description = autogui.get_item_advanced_description()
+    item_info = item_processing.ItemInfo(advanced_description)
+
+    logs: list[str] = item_info.get_logs()
+    logs.append(f"After executing {func.__name__}")
+    log = ''.join(logs)
+    logging.info(log)
+
+    return item_info
+
 @decorators.timeit
-@decorators.log_item_affixes
 def match_item_description(regex: re.Pattern) -> bool:
     autogui.copy_item()
     item_description: str = pyperclip.paste()
@@ -146,21 +160,28 @@ def use_regex(regex_text: str, max_attempts: int) -> None:
 
     #if item do this 
     if (target == "Gear"):
-        if match_item_description(regex):
+        item = item_processing.ItemInfo()
+
+        if item.match(regex):
             logging.info(f"Item already has correct modifiers")
             return
+        
         for attempt in range(max_attempts):
-            autogui.use_alt()
-            if match_item_description(regex):
+            item = __apply_craft(autogui.use_alt)
+            if item.match(regex):
                 logging.info(f"Attempt #{attempt}: success")
                 break
 
-            autogui.use_aug()
-            if match_item_description(regex):
+            if item.is_affixes_full():
+                continue
+
+            item = __apply_craft(autogui.use_aug)
+            if item.match(regex):
                 logging.info(f"Attempt #{attempt}: success")
                 break
 
             logging.info(f"Attempt #{attempt}: fail...")
+    pass
 
 def start_crafting() -> None:
     regex_input: str = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
