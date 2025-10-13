@@ -42,5 +42,5 @@ def read() -> RegexLookup:
 def update(lookup: RegexLookup = MASER_LOOKUP) -> None:
     file_path = os.path.join('src', REGEX_LOOKUP_FILE)
     with open(file_path, mode='w', encoding='utf-8') as file:
-        yaml.safe_dump(data=lookup, stream=file, encoding='utf-8', default_flow_style=False)
+        yaml.safe_dump(data=lookup, stream=file, encoding='utf-8', sort_keys=False)
         pass

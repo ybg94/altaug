@@ -1,16 +1,15 @@
 import logging
-import pyperclip #used to see what was copied.
 import pyautogui
-from . import config_manager
+import pyperclip #used to see what was copied.
 from . import decorators
+from .config_manager import manager
 
-CONFIG_DATA = config_manager.read_config()
 screen_width, screen_height = pyautogui.size()
 
 @decorators.timeit
 def hover_item():
-    x_item=int(screen_width * CONFIG_DATA['item_x_coordinate_percent'])
-    y_item=int(screen_height * CONFIG_DATA['item_y_coordinate_percent'])
+    x_item=int(screen_width * manager.cfg.coordinates.item_x)
+    y_item=int(screen_height * manager.cfg.coordinates.item_y)
     pyautogui.moveTo(x_item,y_item)
 
 @decorators.timeit
@@ -88,8 +87,8 @@ def get_item_name(item_text=None):
 
 @decorators.timeit
 def use_alt():
-    x_alt=int(screen_width * CONFIG_DATA['alt_x_coordinate_percent'])
-    y_alt=int(screen_height * CONFIG_DATA['alt_y_coordinate_percent'])
+    x_alt=int(screen_width * manager.cfg.coordinates.alt_x)
+    y_alt=int(screen_height * manager.cfg.coordinates.alt_y)
     pyautogui.moveTo(x_alt,y_alt)
     pyautogui.rightClick()
     hover_item()
@@ -97,8 +96,8 @@ def use_alt():
 
 @decorators.timeit
 def use_aug():
-    x_aug=int(screen_width * CONFIG_DATA['aug_x_coordinate_percent'])
-    y_aug=int(screen_height * CONFIG_DATA['aug_y_coordinate_percent'])
+    x_aug=int(screen_width * manager.cfg.coordinates.aug_x)
+    y_aug=int(screen_height * manager.cfg.coordinates.aug_y)
     pyautogui.moveTo(x_aug,y_aug)
     pyautogui.rightClick()
     hover_item()

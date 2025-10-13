@@ -1,0 +1,16 @@
+!Config
+coordinates: !Coordinates
+  item_x: 0.174
+  item_y: 0.422
+  alt_x: 0.3921875
+  alt_y: 0.6935185185185185
+  aug_x: 0.11979166666666667
+  aug_y: 0.09259259259259259
+app_settings: !AppSettings
+  pyautogui_pause: 0.03
+  enable_pyautogui_failsafe: true
+  enable_performance_logging: false
+last_state: !LastState
+  crafting_target: Gear
+  regex_string: ''
+  crafting_attempts: 10

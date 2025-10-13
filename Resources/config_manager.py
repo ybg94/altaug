@@ -1,94 +1,90 @@
-import configparser
-import logging
+from typing import LiteralString
 import os
+import yaml
+from . import decorators
 
-def read_config() -> dict[str, float] | None:
-    config = configparser.ConfigParser()
-    config_file_path = os.path.join('src', 'config.ini')
+class ConfigurationCoordinates(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!Coordinates'
 
-    try:
-        config.read(config_file_path)
+    def __init__(self, item_x, item_y, map_top_left_x, map_top_left_y, map_bottom_right_x, map_bottom_right_y, alt_x, alt_y, aug_x, aug_y, alch_x, alch_y, scour_x, scour_y, chaos_x, chaos_y) -> None:
+        self.item_x: float = item_x
+        self.item_y: float = item_y
+        self.map_top_left_x: float = map_top_left_x,
+        self.map_top_left_y: float = map_top_left_y,
+        self.map_bottom_right_x: float = map_bottom_right_x,
+        self.map_bottom_right_y: float = map_bottom_right_y,
+        self.alt_x: float = alt_x
+        self.alt_y: float = alt_y
+        self.aug_x: float = aug_x
+        self.aug_y: float = aug_y
+        self.alch_x: float = alch_x
+        self.alch_y: float = alch_y
+        self.scour_x: float = scour_x
+        self.scour_y: float = scour_y
+        self.chaos_x: float = chaos_x
+        self.chaos_y: float = chaos_y
+        super().__init__()
 
-        ITEM_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'item_x'))
-        ITEM_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'item_y'))
-        MAP_TOP_LEFT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_top_left_x'))
-        MAP_TOP_LEFT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_top_left_y'))
-        MAP_BOTTOM_RIGHT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_bottom_right_x'))
-        MAP_BOTTOM_RIGHT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_bottom_right_y'))
-        ALT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'alt_x'))
-        ALT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'alt_y'))
-        AUG_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'aug_x'))
-        AUG_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'aug_y'))
-        ALCH_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'alch_x'))
-        ALCH_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'alch_y'))
-        SCOUR_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'scour_x'))
-        SCOUR_Y_COORDINATES_PERCENT = float(config.get('Coordinates', 'scour_y'))
-        CHAOS_X_COORDINATES_PERCENT = float(config.get('Coordinates', 'chaos_x'))
-        CHAOS_Y_COORDINATES_PERCENT = float(config.get('Coordinates', 'chaos_y'))
+class ConfigurationAppSettings(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!AppSettings'
 
-        CONFIG_VALUES = {
-            'item_x_coordinate_percent': ITEM_X_COORDINATE_PERCENT,
-            'item_y_coordinate_percent': ITEM_Y_COORDINATE_PERCENT,
-            'map_top_left_x_coordinate_percent': MAP_TOP_LEFT_X_COORDINATE_PERCENT,
-            'map_top_left_y_coordinate_percent': MAP_TOP_LEFT_Y_COORDINATE_PERCENT,
-            'map_bottom_right_x_coordinate_percent': MAP_BOTTOM_RIGHT_X_COORDINATE_PERCENT,
-            'map_bottom_right_y_coordinate_percent': MAP_BOTTOM_RIGHT_Y_COORDINATE_PERCENT,
-            'alt_x_coordinate_percent': ALT_X_COORDINATE_PERCENT,
-            'alt_y_coordinate_percent': ALT_Y_COORDINATE_PERCENT,
-            'aug_x_coordinate_percent': AUG_X_COORDINATE_PERCENT,
-            'aug_y_coordinate_percent': AUG_Y_COORDINATE_PERCENT,
-            'alch_x_coordinate_percent': ALCH_X_COORDINATE_PERCENT,
-            'alch_y_coordinate_percent': ALCH_Y_COORDINATE_PERCENT,
-            'scour_x_coordinate_percent': SCOUR_X_COORDINATE_PERCENT,
-            'scour_y_coordinate_percent': SCOUR_Y_COORDINATES_PERCENT,
-            'chaos_x_coordinate_percent': CHAOS_X_COORDINATES_PERCENT,
-            'chaos_y_coordinate_percent': CHAOS_Y_COORDINATES_PERCENT
-        }
+    def __init__(self, pyautogui_pause: float, enable_pyautogui_failsafe: bool, enable_performance_logging: bool) -> None:
+        self.pyautogui_pause: float = pyautogui_pause
+        self.enable_pyautogui_failsafe: bool = enable_pyautogui_failsafe
+        self.enable_performance_logging: bool = enable_performance_logging
+        super().__init__()
 
-        return CONFIG_VALUES
+class ConfigurationLastState(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!LastState'
 
-    except FileNotFoundError:
-        logging.error(f"Error: Config file not found at {config_file_path}.", exc_info=True)
-        return None  
-    except configparser.NoSectionError:
-        logging.error(f"Error: Missing section in config file.", exc_info=True)
-        return None
-    except configparser.NoOptionError:
-        logging.error(f"Error: Missing option in config file.", exc_info=True)
-        return None
-    except ValueError:
-        logging.error(f"Error: Could not convert value to float.", exc_info=True) 
-        return None
-    except Exception:
-        logging.error(f"An unexpected error occurred.", exc_info=True)
-        return None
+    def __init__(self, crafting_target: str, regex_string: str, crafting_attempts: int) -> None:
+        self.crafting_target: str = crafting_target
+        self.regex_string: str = regex_string
+        self.crafting_attempts: int = crafting_attempts
+        super().__init__()
 
-def update_config(items: list[tuple[str, str, str]]) -> None:
-    logging.info(f"Updating config with: {items}.")
+class Configuration(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!Config'
 
-    config = configparser.ConfigParser()
-    config_path = os.path.join('src', 'config.ini')
+    def __init__(self, coordinates: ConfigurationCoordinates, app_settings: ConfigurationAppSettings, last_state: ConfigurationLastState) -> None:
+        self.coordinates: ConfigurationCoordinates = coordinates
+        self.app_settings: ConfigurationAppSettings = app_settings
+        self.last_state: ConfigurationLastState = last_state
+        super().__init__()
 
-    try:
-        config.read(config_path)
-        for section, option, value in items:
-            config.set(section, option, value)
+@decorators.singleton
+class ConfigManager:
+    CONFIG_PATH: LiteralString = os.path.join('src', 'config.yaml')
 
-        with open(config_path, 'w+') as config_file:
-            config.write(config_file)
+    def __init__(self) -> None:
+        self._cfg = self.__parse_config()
 
-    except FileNotFoundError:
-        logging.error(f"Config file not found at {config_path}.", exc_info=True)
-        return None
-    except configparser.NoSectionError:
-        logging.error(f"Missing section in config file.", exc_info=True)
-        return None
-    except configparser.NoOptionError:
-        logging.error(f"Missing option in config file.", exc_info=True)
-        return None
-    except ValueError:
-        logging.error(f"Could not convert value to float.", exc_info=True) 
-        return None
-    except Exception:
-        logging.error(f"An unexpected error occurred.", exc_info=True)
-        return None
+    def __parse_config(self) -> Configuration:
+        with open(self.CONFIG_PATH, mode='r', encoding='utf-8') as file:
+            return yaml.safe_load(file)
+    
+    def save_config(self, new_config: Configuration) -> None:
+        with open(self.CONFIG_PATH, mode='w', encoding='utf-8') as file:
+            yaml.safe_dump(data=new_config, stream=file, encoding='utf-8', sort_keys=False)
+
+        self.cfg = new_config
+        pass
+
+    @property
+    def cfg(self) -> Configuration:
+        return self._cfg
+    
+    @cfg.setter
+    def cfg(self, value: Configuration) -> None:
+        self._cfg = value
+        pass
+
+manager = ConfigManager()
