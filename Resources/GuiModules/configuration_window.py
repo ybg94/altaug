@@ -25,6 +25,7 @@ def __get_target_position() -> tuple[int, int] | None:
     return None
 
 def __record_position(sender, app_data, config_updater: Callable[[Configuration, tuple[int, int]], Configuration]) -> None:
+    dpg.set_item_label(gui_tags.CONFIGURATION_INFO_TEXT_TAG, app_data if app_data is not None else dpg.get_item_label(sender))
     dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=True)
 
     position = __get_target_position()
@@ -68,6 +69,20 @@ def __update_map_first_position(config: Configuration, new_pos: tuple[int, int])
     new_config.coordinates.map_top_left = new_pos
     return new_config
 
+def __update_map_second_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.map_bottom_right = new_pos
+    return new_config
+
+def __record_map_positions(sender, app_data) -> None:
+    __record_position(sender=sender, app_data="Capture Top-Left Map corner", config_updater=__update_map_first_position)
+
+    while dpg.is_key_down(dpg.mvKey_Spacebar) or dpg.is_key_down(dpg.mvKey_Escape):
+        time.sleep(1 / 20)
+
+    __record_position(sender=sender, app_data="Capture Bottom-Right Map corner", config_updater=__update_map_second_position)
+    pass
+
 def __toggle_autogui_failsafe() -> None:
     value = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
     logging.debug(f"Failsafe checkbox state is {value}.")
@@ -81,9 +96,11 @@ def __set_pyautogui_pause() -> None:
     pass
 
 def init(configuration_window_tag: int | str) -> None:
-    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=178, height=60, no_resize=True, no_move=True):
-        dpg.add_text(default_value="Press Space to record")
-        dpg.add_text(default_value="Press Esc to cancel")
+    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=314, height=80, no_resize=True, no_move=True):
+        dpg.add_spacer(height=2)
+        dpg.add_button(tag=gui_tags.CONFIGURATION_INFO_TEXT_TAG, enabled=False, width=300)
+        dpg.add_button(label="Press Space to record", enabled=False, width=300)
+        dpg.add_button(label="Press Esc to cancel", enabled=False, width=300)
         pass
 
     with dpg.window(tag=configuration_window_tag, label="Configuration", no_close=True):
@@ -98,7 +115,7 @@ def init(configuration_window_tag: int | str) -> None:
             elements.add_button(label="Capture Scouring orb position", callback=__record_position, user_data=__update_scour_position, width=300)
         
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture First Map position", callback=__record_position, user_data=__update_map_first_position, width=300)
+            elements.add_button(label="Capture Map position", callback=__record_map_positions, user_data=__update_map_first_position, width=300)
             elements.add_button(label="Capture Chaos orb position", callback=__record_position, user_data=__update_chaos_position, width=300)
 
 
