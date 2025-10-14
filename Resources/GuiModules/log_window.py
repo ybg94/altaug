@@ -10,6 +10,6 @@ def init(script_log_tag: int | str) -> None:
                 multiline=True,
                 readonly=True,
                 width=700,
-                height=250
+                height=250        
             )
             elements.add_button(label="Clear", callback=lambda: dpg.set_value(gui_tags.OUTPUT_LOG_TAG, ""))

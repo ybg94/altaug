@@ -14,8 +14,35 @@ def hover_item():
     pyautogui.moveTo(x_item,y_item)
 
 @decorators.timeit
+def hover_map(map_count):
+    x_map, y_map = calculate_map_coordinates(map_count)
+    pyautogui.moveTo(x_map,y_map)
+
+def calculate_map_coordinates(map_count):
+    middle_x_map = (CONFIG_DATA['map_top_left_x_coordinate_percent'] + CONFIG_DATA['map_bottom_right_x_coordinate_percent'])/2
+    middle_y_map = (CONFIG_DATA['map_top_left_y_coordinate_percent'] + CONFIG_DATA['map_bottom_right_y_coordinate_percent'])/2
+    x_differential = int(screen_width * (CONFIG_DATA['map_bottom_right_x_coordinate_percent'] - CONFIG_DATA['map_top_left_x_coordinate_percent']))
+    y_differential = int(screen_height * (CONFIG_DATA['map_bottom_right_y_coordinate_percent'] - CONFIG_DATA['map_top_left_y_coordinate_percent']))
+
+    x_map = int(screen_width * middle_x_map)
+    y_map = int(screen_height * middle_y_map)
+
+    row = (map_count - 1) // 5
+    col = (map_count - 1) % 5
+
+    x_map += row * x_differential
+    y_map += col * y_differential
+
+    return x_map, y_map
+
+@decorators.timeit
 def copy_item():
     hover_item()
+    pyautogui.hotkey("ctrl", "c")
+
+@decorators.timeit
+def copy_map(map_count):
+    hover_map(map_count)
     pyautogui.hotkey("ctrl", "c")
 
 @decorators.timeit
@@ -75,4 +102,22 @@ def use_aug():
     pyautogui.moveTo(x_aug,y_aug)
     pyautogui.rightClick()
     hover_item()
+    pyautogui.leftClick()
+
+@decorators.timeit
+def use_alch(map_count):
+    x_alch=int(screen_width * CONFIG_DATA['alch_x_coordinate_percent'])
+    y_alch=int(screen_height * CONFIG_DATA['alch_y_coordinate_percent'])
+    pyautogui.moveTo(x_alch,y_alch)
+    pyautogui.rightClick()
+    hover_map(map_count)
+    pyautogui.leftClick()
+
+@decorators.timeit
+def use_scour(map_count):
+    x_scour=int(screen_width * CONFIG_DATA['scour_x_coordinate_percent'])
+    y_scour=int(screen_height * CONFIG_DATA['scour_y_coordinate_percent'])
+    pyautogui.moveTo(x_scour,y_scour)
+    pyautogui.rightClick()
+    hover_map(map_count)
     pyautogui.leftClick()

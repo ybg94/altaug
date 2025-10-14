@@ -11,18 +11,38 @@ def read_config() -> dict[str, float] | None:
 
         ITEM_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'item_x'))
         ITEM_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'item_y'))
+        MAP_TOP_LEFT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_top_left_x'))
+        MAP_TOP_LEFT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_top_left_y'))
+        MAP_BOTTOM_RIGHT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_bottom_right_x'))
+        MAP_BOTTOM_RIGHT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_bottom_right_y'))
         ALT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'alt_x'))
         ALT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'alt_y'))
         AUG_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'aug_x'))
         AUG_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'aug_y'))
+        ALCH_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'alch_x'))
+        ALCH_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'alch_y'))
+        SCOUR_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'scour_x'))
+        SCOUR_Y_COORDINATES_PERCENT = float(config.get('Coordinates', 'scour_y'))
+        CHAOS_X_COORDINATES_PERCENT = float(config.get('Coordinates', 'chaos_x'))
+        CHAOS_Y_COORDINATES_PERCENT = float(config.get('Coordinates', 'chaos_y'))
 
         CONFIG_VALUES = {
             'item_x_coordinate_percent': ITEM_X_COORDINATE_PERCENT,
             'item_y_coordinate_percent': ITEM_Y_COORDINATE_PERCENT,
+            'map_top_left_x_coordinate_percent': MAP_TOP_LEFT_X_COORDINATE_PERCENT,
+            'map_top_left_y_coordinate_percent': MAP_TOP_LEFT_Y_COORDINATE_PERCENT,
+            'map_bottom_right_x_coordinate_percent': MAP_BOTTOM_RIGHT_X_COORDINATE_PERCENT,
+            'map_bottom_right_y_coordinate_percent': MAP_BOTTOM_RIGHT_Y_COORDINATE_PERCENT,
             'alt_x_coordinate_percent': ALT_X_COORDINATE_PERCENT,
             'alt_y_coordinate_percent': ALT_Y_COORDINATE_PERCENT,
             'aug_x_coordinate_percent': AUG_X_COORDINATE_PERCENT,
-            'aug_y_coordinate_percent': AUG_Y_COORDINATE_PERCENT
+            'aug_y_coordinate_percent': AUG_Y_COORDINATE_PERCENT,
+            'alch_x_coordinate_percent': ALCH_X_COORDINATE_PERCENT,
+            'alch_y_coordinate_percent': ALCH_Y_COORDINATE_PERCENT,
+            'scour_x_coordinate_percent': SCOUR_X_COORDINATE_PERCENT,
+            'scour_y_coordinate_percent': SCOUR_Y_COORDINATES_PERCENT,
+            'chaos_x_coordinate_percent': CHAOS_X_COORDINATES_PERCENT,
+            'chaos_y_coordinate_percent': CHAOS_Y_COORDINATES_PERCENT
         }
 
         return CONFIG_VALUES
