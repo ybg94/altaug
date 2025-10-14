@@ -1,7 +1,4 @@
-#ctrl C to stop does not work when POE is opened. 
-#I moved VS Code to a different monitor and kept poe on main monitor and simply moved my cursor and wrote down the pixels coordinates
-
-import pyautogui, sys
+import pyautogui
 print('Press Ctrl-C to quit.')
 try:
     while True:

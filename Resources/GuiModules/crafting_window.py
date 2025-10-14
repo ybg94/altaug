@@ -25,6 +25,8 @@ def init(crafting_window_tag: int | str) -> None:
             with dpg.group(tag=gui_tags.MAP_HIDDEN_GROUP_TAG, show=default_group_map_show, horizontal=True):
                 dpg.add_text("Number of maps to craft:")
                 dpg.add_input_int(tag=gui_tags.MAP_AMOUNT_INPUT_TAG, default_value=manager.cfg.last_state.map_craft_amount, width=128)
+                dpg.add_text("T17")
+                dpg.add_checkbox(tag=gui_tags.MAP_TYPE_CHECK, default_value=False)
 
         dpg.add_text("RegEx input (crafting stops when RegEx matches the item)")
         dpg.add_text("When copying from poe.re make sure to NOT include quotes")

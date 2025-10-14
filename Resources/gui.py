@@ -29,7 +29,6 @@ def init_gui() -> None:
     dpg.create_context()
     dpg.set_exit_callback(__save_state_to_config)
     dpg.configure_app(init_file=os.path.join('src', 'gui_layout.ini'), docking=True, docking_space=True)
-
     try:
         with dpg.font_registry():
             with dpg.font(os.path.join(os.environ['WINDIR'], 'Fonts', 'seguiemj.ttf'), 16) as emoji_font:
@@ -41,8 +40,8 @@ def init_gui() -> None:
         dpg.bind_font(emoji_font)
     except Exception:
         logging.error('Unable to load Bahnschrift font, using default.', exc_info=True)
-
     dpg.create_viewport(title="Alt-Aug GUI", width=800, height=855)
+
 
     configuration_window_tag = dpg.generate_uuid()
     crafting_window_tag = dpg.generate_uuid()
