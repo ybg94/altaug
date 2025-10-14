@@ -107,8 +107,17 @@ def init(configuration_window_tag: int | str) -> None:
         dpg.add_text(default_value="Must restart script to apply config changes")
 
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=('Coordinates', 'alt'))
-            elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=('Coordinates', 'aug'))
+            elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=('Coordinates', 'alt'), width=300)
+            elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=('Coordinates', 'aug'), width=300)
+
+        with dpg.group(horizontal=True):
+            elements.add_button(label="Capture Alchemy orb position", callback=__record_position, user_data=('Coordinates', 'alch'), width=300)
+            elements.add_button(label="Capture Scouring orb position", callback=__record_position, user_data=('Coordinates', 'scour'), width=300)
+        
+        with dpg.group(horizontal=True):
+            elements.add_button(label="Capture First Map position", callback=__record_position, user_data=('Coordinates', 'map'), width=300)
+            elements.add_button(label="Capture Chaos orb position", callback=__record_position, user_data=('Coordinates', 'chaos'), width=300)
+
 
         with dpg.group(horizontal=True):
             dpg.add_text(default_value="Set pause after each PyAutoGui action:")

@@ -100,26 +100,67 @@ def match_item_description(regex: re.Pattern) -> bool:
     
     return False
 
+@decorators.timeit
+def match_map_description(regex: re.Pattern, map_count) -> bool:
+    autogui.copy_map(map_count)
+    map_description: str = pyperclip.paste().lower()
+
+    regex_str = regex.pattern
+    if regex_str.startswith('!'):
+        regexes_to_exclude = regex_str[1:].split('|')
+        for regex_to_exclude in regexes_to_exclude:
+            regex_to_exclude = regex_to_exclude.strip().lower()
+            if re.search(regex_to_exclude, map_description):
+                return False      
+        return True
+
+    else:
+        regexes_to_include = regex_str[1:].split('|')
+        for regex_to_include in regexes_to_include:
+            regex_to_include = regex_to_include.strip().lower()
+            if re.search(regex_to_include, map_description):
+                return True
+        return False
+
 def use_regex(regex_text: str, max_attempts: int) -> None:
     logging.info(f"Using regex method with pattern: {regex_text}")
     regex = re.compile(regex_text, flags=re.MULTILINE)
+    target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
+    map_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
 
-    if match_item_description(regex):
-        logging.info(f"Item already has correct modifiers")
-        return
+    #if map do loop for maps
+    if (target == "Maps"):
+        attempt = 1
+        map_count = 1
 
-    for attempt in range(max_attempts):
-        autogui.use_alt()
+        while attempt <= max_attempts and map_count <= map_amount:
+            logging.info(f"Map {map_count}, attempt: {attempt}")
+            autogui.use_alch(map_count)
+            if match_map_description(regex, map_count):
+                logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
+                map_count += 1
+            else:
+                autogui.use_scour(map_count)
+            attempt += 1
+
+
+    #if item do this 
+    if (target == "Gear"):
         if match_item_description(regex):
-            logging.info(f"Attempt #{attempt}: success")
-            break
+            logging.info(f"Item already has correct modifiers")
+            return
+        for attempt in range(max_attempts):
+            autogui.use_alt()
+            if match_item_description(regex):
+                logging.info(f"Attempt #{attempt}: success")
+                break
 
-        autogui.use_aug()
-        if match_item_description(regex):
-            logging.info(f"Attempt #{attempt}: success")
-            break
+            autogui.use_aug()
+            if match_item_description(regex):
+                logging.info(f"Attempt #{attempt}: success")
+                break
 
-        logging.info(f"Attempt #{attempt}: fail...")
+            logging.info(f"Attempt #{attempt}: fail...")
 
 def start_crafting() -> None:
     regex_input: str = dpg.get_value(gui_tags.REGEX_INPUT_TAG)

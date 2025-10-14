@@ -1,4 +1,7 @@
-#Authors billy_smalls and kipper86
+#Authors
+#billy_smalls
+#kipper86
+#niirn
 
 import Resources.gui as gui
 import logging
