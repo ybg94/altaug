@@ -8,31 +8,27 @@ screen_width, screen_height = pyautogui.size()
 
 @decorators.timeit
 def hover_item():
-    x_item=int(screen_width * manager.cfg.coordinates.item_x)
-    y_item=int(screen_height * manager.cfg.coordinates.item_y)
-    pyautogui.moveTo(x_item,y_item)
+    pyautogui.moveTo(manager.cfg.coordinates.item)
 
 @decorators.timeit
 def hover_map(map_count):
-    x_map, y_map = calculate_map_coordinates(map_count)
-    pyautogui.moveTo(x_map,y_map)
+    map_pos = calculate_map_coordinates(map_count)
+    pyautogui.moveTo(map_pos)
 
-def calculate_map_coordinates(map_count):
-    middle_x_map = (CONFIG_DATA['map_top_left_x_coordinate_percent'] + CONFIG_DATA['map_bottom_right_x_coordinate_percent'])/2
-    middle_y_map = (CONFIG_DATA['map_top_left_y_coordinate_percent'] + CONFIG_DATA['map_bottom_right_y_coordinate_percent'])/2
-    x_differential = int(screen_width * (CONFIG_DATA['map_bottom_right_x_coordinate_percent'] - CONFIG_DATA['map_top_left_x_coordinate_percent']))
-    y_differential = int(screen_height * (CONFIG_DATA['map_bottom_right_y_coordinate_percent'] - CONFIG_DATA['map_top_left_y_coordinate_percent']))
-
-    x_map = int(screen_width * middle_x_map)
-    y_map = int(screen_height * middle_y_map)
+def calculate_map_coordinates(map_count) -> tuple[int, int]:
+    coordinates = manager.cfg.coordinates
+    map_x = (coordinates.map_top_left.x + coordinates.map_bottom_right.x) / 2
+    map_y = (coordinates.map_top_left.y + coordinates.map_bottom_right.y) / 2
+    step_x = coordinates.map_bottom_right.x - coordinates.map_top_left.x
+    step_y = coordinates.map_bottom_right.y - coordinates.map_top_left.y
 
     row = (map_count - 1) // 5
     col = (map_count - 1) % 5
 
-    x_map += row * x_differential
-    y_map += col * y_differential
+    map_x += row * step_x
+    map_y += col * step_y
 
-    return x_map, y_map
+    return (map_x, map_y)
 
 @decorators.timeit
 def copy_item():
@@ -48,6 +44,12 @@ def copy_map(map_count):
 def get_item_advanced_description() -> str:
     hover_item()
     pyautogui.hotkey("ctrl", "alt", "c")
+    return pyperclip.paste()
+
+@decorators.timeit
+def get_map_description(map_count: int) -> str:
+    hover_map(map_count)
+    pyautogui.hotkey("ctrl", "c")
     return pyperclip.paste()
 
 def check_clipboard_for(keyword):
@@ -87,36 +89,28 @@ def get_item_name(item_text=None):
 
 @decorators.timeit
 def use_alt():
-    x_alt=int(screen_width * manager.cfg.coordinates.alt_x)
-    y_alt=int(screen_height * manager.cfg.coordinates.alt_y)
-    pyautogui.moveTo(x_alt,y_alt)
+    pyautogui.moveTo(manager.cfg.coordinates.alt)
     pyautogui.rightClick()
     hover_item()
     pyautogui.leftClick()
 
 @decorators.timeit
 def use_aug():
-    x_aug=int(screen_width * manager.cfg.coordinates.aug_x)
-    y_aug=int(screen_height * manager.cfg.coordinates.aug_y)
-    pyautogui.moveTo(x_aug,y_aug)
+    pyautogui.moveTo(manager.cfg.coordinates.aug)
     pyautogui.rightClick()
     hover_item()
     pyautogui.leftClick()
 
 @decorators.timeit
 def use_alch(map_count):
-    x_alch=int(screen_width * CONFIG_DATA['alch_x_coordinate_percent'])
-    y_alch=int(screen_height * CONFIG_DATA['alch_y_coordinate_percent'])
-    pyautogui.moveTo(x_alch,y_alch)
+    pyautogui.moveTo(manager.cfg.coordinates.alch)
     pyautogui.rightClick()
     hover_map(map_count)
     pyautogui.leftClick()
 
 @decorators.timeit
 def use_scour(map_count):
-    x_scour=int(screen_width * CONFIG_DATA['scour_x_coordinate_percent'])
-    y_scour=int(screen_height * CONFIG_DATA['scour_y_coordinate_percent'])
-    pyautogui.moveTo(x_scour,y_scour)
+    pyautogui.moveTo(manager.cfg.coordinates.scour)
     pyautogui.rightClick()
     hover_map(map_count)
     pyautogui.leftClick()

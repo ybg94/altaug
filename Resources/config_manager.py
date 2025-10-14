@@ -1,30 +1,44 @@
+from enum import StrEnum
 from typing import LiteralString
 import os
+import pyautogui
 import yaml
 from . import decorators
+from .GuiModules.constants import CraftingTarget
+
+def __point_representer(dumper: yaml.SafeDumper, data: pyautogui.Point) -> yaml.MappingNode:
+    return dumper.represent_mapping(u'!Point', data._asdict())
+
+def __point_constructor(loader: yaml.SafeLoader, node: yaml.MappingNode) -> pyautogui.Point:
+    values = loader.construct_mapping(node)
+    return pyautogui.Point(**values)
+
+yaml.SafeDumper.add_representer(pyautogui.Point, __point_representer)
+yaml.SafeDumper.add_multi_representer(StrEnum, yaml.representer.SafeRepresenter.represent_str)
+yaml.SafeLoader.add_constructor(u'!Point', __point_constructor)
 
 class ConfigurationCoordinates(yaml.YAMLObject):
     yaml_dumper = yaml.SafeDumper
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!Coordinates'
 
-    def __init__(self, item_x, item_y, map_top_left_x, map_top_left_y, map_bottom_right_x, map_bottom_right_y, alt_x, alt_y, aug_x, aug_y, alch_x, alch_y, scour_x, scour_y, chaos_x, chaos_y) -> None:
-        self.item_x: float = item_x
-        self.item_y: float = item_y
-        self.map_top_left_x: float = map_top_left_x,
-        self.map_top_left_y: float = map_top_left_y,
-        self.map_bottom_right_x: float = map_bottom_right_x,
-        self.map_bottom_right_y: float = map_bottom_right_y,
-        self.alt_x: float = alt_x
-        self.alt_y: float = alt_y
-        self.aug_x: float = aug_x
-        self.aug_y: float = aug_y
-        self.alch_x: float = alch_x
-        self.alch_y: float = alch_y
-        self.scour_x: float = scour_x
-        self.scour_y: float = scour_y
-        self.chaos_x: float = chaos_x
-        self.chaos_y: float = chaos_y
+    def __init__(self,
+                 item: pyautogui.Point,
+                 map_top_left: pyautogui.Point,
+                 map_bottom_right: pyautogui.Point,
+                 alt: pyautogui.Point,
+                 aug: pyautogui.Point,
+                 alch: pyautogui.Point,
+                 scour: pyautogui.Point,
+                 chaos: pyautogui.Point) -> None:
+        self.item: pyautogui.Point = item
+        self.map_top_left: pyautogui.Point = map_top_left
+        self.map_bottom_right: pyautogui.Point = map_bottom_right
+        self.alt: pyautogui.Point = alt
+        self.aug: pyautogui.Point = aug
+        self.alch: pyautogui.Point = alch
+        self.scour: pyautogui.Point = scour
+        self.chaos: pyautogui.Point = chaos
         super().__init__()
 
 class ConfigurationAppSettings(yaml.YAMLObject):
@@ -43,8 +57,9 @@ class ConfigurationLastState(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!LastState'
 
-    def __init__(self, crafting_target: str, regex_string: str, crafting_attempts: int) -> None:
-        self.crafting_target: str = crafting_target
+    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, regex_string: str, crafting_attempts: int) -> None:
+        self.crafting_target: CraftingTarget = crafting_target
+        self.map_craft_amount: int = map_craft_amount
         self.regex_string: str = regex_string
         self.crafting_attempts: int = crafting_attempts
         super().__init__()
@@ -87,4 +102,11 @@ class ConfigManager:
         self._cfg = value
         pass
 
+# Used for building a new config from scratch when needed
+# new_config = Configuration(
+#     ConfigurationCoordinates(pyautogui.Point(334, 455), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0)),
+#     ConfigurationAppSettings(0.03, True, False),
+#     ConfigurationLastState(CraftingTarget.GEAR, 15, "", 10))
+
 manager = ConfigManager()
+# manager.save_config(new_config)

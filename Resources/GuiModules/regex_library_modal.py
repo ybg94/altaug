@@ -64,9 +64,11 @@ def __selector_regex_selected(sender, regex_title: str) -> None:
 
 def __selector_confirm_selected_regex() -> None:
     item_type = dpg.get_value(gui_tags.REGEX_WIZARD_SELECTOR_COMBO_TYPE_TAG)
+    crafting_target = constants.ITEM_TYPE_TO_CRAFTING_TARGET_LOOKUP[item_type]
 
     dpg.set_value(gui_tags.REGEX_INPUT_TAG, dpg.get_value(gui_tags.REGEX_WIZARD_SELECTOR_REGEX_PREVIEW_TAG))
-    dpg.set_value(gui_tags.CRAFTING_TARGET_COMBO_TAG, constants.ITEM_TYPE_TO_CRAFTING_TARGET_LOOKUP[item_type])
+    dpg.set_value(gui_tags.CRAFTING_TARGET_COMBO_TAG, crafting_target)
+    dpg.configure_item(gui_tags.MAP_HIDDEN_GROUP_TAG, show=True if crafting_target == constants.CraftingTarget.MAPS else False)
     dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=False)
     pass
 

@@ -1,10 +1,11 @@
 from datetime import datetime
-from typing import Callable
+from typing import Callable, Any
 import logging
 import re
 import time
 import dearpygui.dearpygui as dpg
 import pyperclip
+from .GuiModules.constants import CraftingTarget
 from . import decorators
 from . import autogui
 from . import gui_tags
@@ -90,77 +91,51 @@ def use_json(max_attempts: int) -> None:
             #alt 
             #loop and it will check affixes at start of loop again
 
-def __apply_craft(func: Callable[[], None]) -> item_processing.ItemInfo:
-    func()
+@decorators.timeit
+def __apply_craft(craft_func: Callable[..., None], map_count: int | None = None) -> item_processing.ItemInfo:
+    if map_count is not None:
+        craft_func(map_count)
+    else:
+        craft_func()
 
-    advanced_description = autogui.get_item_advanced_description()
-    item_info = item_processing.ItemInfo(advanced_description)
+    adv_desc: str = autogui.get_map_description(map_count) if map_count is not None else autogui.get_item_advanced_description()
+    item_info = item_processing.ItemInfo(adv_desc)
 
-    logs: list[str] = item_info.get_logs()
-    logs.append(f"After executing {func.__name__}")
+    logs: list[str] = item_info.get_affix_logs(True if map_count is not None else False)
+    logs.append(f"After executing {craft_func.__name__}")
     log = ''.join(logs)
     logging.info(log)
 
     return item_info
 
-@decorators.timeit
-def match_item_description(regex: re.Pattern) -> bool:
-    autogui.copy_item()
-    item_description: str = pyperclip.paste()
-
-    match = regex.search(item_description)
-    if match:
-        return True
-    
-    return False
-
-@decorators.timeit
-def match_map_description(regex: re.Pattern, map_count) -> bool:
-    autogui.copy_map(map_count)
-    map_description: str = pyperclip.paste().lower()
-
-    regex_str = regex.pattern
-    if regex_str.startswith('!'):
-        regexes_to_exclude = regex_str[1:].split('|')
-        for regex_to_exclude in regexes_to_exclude:
-            regex_to_exclude = regex_to_exclude.strip().lower()
-            if re.search(regex_to_exclude, map_description):
-                return False      
-        return True
-
-    else:
-        regexes_to_include = regex_str[1:].split('|')
-        for regex_to_include in regexes_to_include:
-            regex_to_include = regex_to_include.strip().lower()
-            if re.search(regex_to_include, map_description):
-                return True
-        return False
-
 def use_regex(regex_text: str, max_attempts: int) -> None:
     logging.info(f"Using regex method with pattern: {regex_text}")
-    regex = re.compile(regex_text, flags=re.MULTILINE)
-    target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
-    map_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
+    regex: re.Pattern
+    is_regex_inverted = regex_text.startswith('!')
+    if is_regex_inverted:
+        regex = re.compile(regex_text[1:], re.MULTILINE | re.IGNORECASE)
+    else:
+        regex = re.compile(regex_text, re.MULTILINE | re.IGNORECASE)
 
-    #if map do loop for maps
-    if (target == "Maps"):
+    target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
+    if (target == CraftingTarget.MAPS):
+        map_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
         attempt = 1
         map_count = 1
 
         while attempt <= max_attempts and map_count <= map_amount:
             logging.info(f"Map {map_count}, attempt: {attempt}")
-            autogui.use_alch(map_count)
-            if match_map_description(regex, map_count):
+
+            item = __apply_craft(craft_func=autogui.use_alch, map_count=map_count)
+            if item.match(regex, is_regex_inverted):
                 logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
                 map_count += 1
             else:
                 autogui.use_scour(map_count)
             attempt += 1
 
-
-    #if item do this 
-    if (target == "Gear"):
-        item = item_processing.ItemInfo()
+    elif (target == CraftingTarget.GEAR):
+        item = item_processing.ItemInfo(autogui.get_item_advanced_description())
 
         if item.match(regex):
             logging.info(f"Item already has correct modifiers")

@@ -18,6 +18,7 @@ def __save_state_to_config() -> None:
     config.app_settings.enable_performance_logging = dpg.get_value(gui_tags.PERFORMANCE_LOGGING_TAG)
 
     config.last_state.crafting_target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
+    config.last_state.map_craft_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
     config.last_state.regex_string = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
     config.last_state.crafting_attempts = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
 
@@ -41,7 +42,7 @@ def init_gui() -> None:
     except Exception:
         logging.error('Unable to load Bahnschrift font, using default.', exc_info=True)
 
-    dpg.create_viewport(title="Alt-Aug GUI", width=800)
+    dpg.create_viewport(title="Alt-Aug GUI", width=800, height=855)
 
     configuration_window_tag = dpg.generate_uuid()
     crafting_window_tag = dpg.generate_uuid()

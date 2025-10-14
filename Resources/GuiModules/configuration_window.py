@@ -24,59 +24,48 @@ def __get_target_position() -> tuple[int, int] | None:
     
     return None
 
-def __record_position(sender, app_data, config_updater: Callable[[Configuration, float, float], Configuration]) -> None:
+def __record_position(sender, app_data, config_updater: Callable[[Configuration, tuple[int, int]], Configuration]) -> None:
     dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=True)
 
     position = __get_target_position()
     if position:
-        x, y = position
-        width, height = pyautogui.size()
-        ratio_x = x / width
-        ratio_y = y / height
+        logging.info(f"Executing {config_updater.__name__} with x = {position[0]} and y = {position[1]}")
 
-        logging.info(f"Executing {config_updater.__name__} with x = {ratio_x:.3f} and y = {ratio_y:.3f}")
-
-        updated_config = config_updater(manager.cfg, ratio_x, ratio_y)
+        updated_config = config_updater(manager.cfg, position)
         manager.save_config(updated_config)
         pass
 
     dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=False)    
     pass
 
-def __update_alt_position(config: Configuration, new_x: float, new_y: float) -> Configuration:
+def __update_alt_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
     new_config = config
-    new_config.coordinates.alt_x = new_x
-    new_config.coordinates.alt_y = new_y
+    new_config.coordinates.alt = new_pos
     return new_config
 
-def __update_aug_position(config: Configuration, new_x: float, new_y: float) -> Configuration:
+def __update_aug_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
     new_config = config
-    new_config.coordinates.aug_x = new_x
-    new_config.coordinates.aug_y = new_y
+    new_config.coordinates.aug = new_pos
     return new_config
 
-def __update_alch_position(config: Configuration, new_x: float, new_y: float) -> Configuration:
+def __update_alch_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
     new_config = config
-    new_config.coordinates.alch_x = new_x
-    new_config.coordinates.alch_y = new_y
+    new_config.coordinates.alch = new_pos
     return new_config
 
-def __update_scour_position(config: Configuration, new_x: float, new_y: float) -> Configuration:
+def __update_scour_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
     new_config = config
-    new_config.coordinates.scour_x = new_x
-    new_config.coordinates.scour_y = new_y
+    new_config.coordinates.scour = new_pos
     return new_config
 
-def __update_chaos_position(config: Configuration, new_x: float, new_y: float) -> Configuration:
+def __update_chaos_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
     new_config = config
-    new_config.coordinates.chaos_x = new_x
-    new_config.coordinates.chaos_y = new_y
+    new_config.coordinates.chaos = new_pos
     return new_config
 
-def __update_map_first_position(config: Configuration, new_x: float, new_y: float) -> Configuration:
+def __update_map_first_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
     new_config = config
-    new_config.coordinates.map_top_left_x = new_x
-    new_config.coordinates.map_top_left_y = new_y
+    new_config.coordinates.map_top_left = new_pos
     return new_config
 
 def __toggle_autogui_failsafe() -> None:

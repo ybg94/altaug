@@ -1,16 +1,35 @@
 !Config
 coordinates: !Coordinates
-  item_x: 0.174
-  item_y: 0.422
-  alt_x: 0.057291666666666664
-  alt_y: 0.2898148148148148
-  aug_x: 0.11875
-  aug_y: 0.3425925925925926
+  item: !Point
+    x: 334
+    y: 455
+  map_top_left: !Point
+    x: 1273
+    y: 589
+  map_bottom_right: !Point
+    x: 1323
+    y: 641
+  alt: !Point
+    x: 110
+    y: 312
+  aug: !Point
+    x: 227
+    y: 370
+  alch: !Point
+    x: 493
+    y: 310
+  scour: !Point
+    x: 431
+    y: 550
+  chaos: !Point
+    x: 547
+    y: 309
 app_settings: !AppSettings
   pyautogui_pause: 0.029999999329447746
   enable_pyautogui_failsafe: true
   enable_performance_logging: false
 last_state: !LastState
   crafting_target: Gear
+  map_craft_amount: 15
   regex_string: ''
   crafting_attempts: 10
