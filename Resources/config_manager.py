@@ -1,94 +1,112 @@
-import configparser
-import logging
+from enum import StrEnum
+from typing import LiteralString
 import os
+import pyautogui
+import yaml
+from . import decorators
+from .GuiModules.constants import CraftingTarget
 
-def read_config() -> dict[str, float] | None:
-    config = configparser.ConfigParser()
-    config_file_path = os.path.join('src', 'config.ini')
+def __point_representer(dumper: yaml.SafeDumper, data: pyautogui.Point) -> yaml.MappingNode:
+    return dumper.represent_mapping(u'!Point', data._asdict())
 
-    try:
-        config.read(config_file_path)
+def __point_constructor(loader: yaml.SafeLoader, node: yaml.MappingNode) -> pyautogui.Point:
+    values = loader.construct_mapping(node)
+    return pyautogui.Point(**values)
 
-        ITEM_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'item_x'))
-        ITEM_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'item_y'))
-        MAP_TOP_LEFT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_top_left_x'))
-        MAP_TOP_LEFT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_top_left_y'))
-        MAP_BOTTOM_RIGHT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_bottom_right_x'))
-        MAP_BOTTOM_RIGHT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'map_bottom_right_y'))
-        ALT_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'alt_x'))
-        ALT_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'alt_y'))
-        AUG_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'aug_x'))
-        AUG_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'aug_y'))
-        ALCH_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'alch_x'))
-        ALCH_Y_COORDINATE_PERCENT = float(config.get('Coordinates', 'alch_y'))
-        SCOUR_X_COORDINATE_PERCENT = float(config.get('Coordinates', 'scour_x'))
-        SCOUR_Y_COORDINATES_PERCENT = float(config.get('Coordinates', 'scour_y'))
-        CHAOS_X_COORDINATES_PERCENT = float(config.get('Coordinates', 'chaos_x'))
-        CHAOS_Y_COORDINATES_PERCENT = float(config.get('Coordinates', 'chaos_y'))
+yaml.SafeDumper.add_representer(pyautogui.Point, __point_representer)
+yaml.SafeDumper.add_multi_representer(StrEnum, yaml.representer.SafeRepresenter.represent_str)
+yaml.SafeLoader.add_constructor(u'!Point', __point_constructor)
 
-        CONFIG_VALUES = {
-            'item_x_coordinate_percent': ITEM_X_COORDINATE_PERCENT,
-            'item_y_coordinate_percent': ITEM_Y_COORDINATE_PERCENT,
-            'map_top_left_x_coordinate_percent': MAP_TOP_LEFT_X_COORDINATE_PERCENT,
-            'map_top_left_y_coordinate_percent': MAP_TOP_LEFT_Y_COORDINATE_PERCENT,
-            'map_bottom_right_x_coordinate_percent': MAP_BOTTOM_RIGHT_X_COORDINATE_PERCENT,
-            'map_bottom_right_y_coordinate_percent': MAP_BOTTOM_RIGHT_Y_COORDINATE_PERCENT,
-            'alt_x_coordinate_percent': ALT_X_COORDINATE_PERCENT,
-            'alt_y_coordinate_percent': ALT_Y_COORDINATE_PERCENT,
-            'aug_x_coordinate_percent': AUG_X_COORDINATE_PERCENT,
-            'aug_y_coordinate_percent': AUG_Y_COORDINATE_PERCENT,
-            'alch_x_coordinate_percent': ALCH_X_COORDINATE_PERCENT,
-            'alch_y_coordinate_percent': ALCH_Y_COORDINATE_PERCENT,
-            'scour_x_coordinate_percent': SCOUR_X_COORDINATE_PERCENT,
-            'scour_y_coordinate_percent': SCOUR_Y_COORDINATES_PERCENT,
-            'chaos_x_coordinate_percent': CHAOS_X_COORDINATES_PERCENT,
-            'chaos_y_coordinate_percent': CHAOS_Y_COORDINATES_PERCENT
-        }
+class ConfigurationCoordinates(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!Coordinates'
 
-        return CONFIG_VALUES
+    def __init__(self,
+                 item: pyautogui.Point,
+                 map_top_left: pyautogui.Point,
+                 map_bottom_right: pyautogui.Point,
+                 alt: pyautogui.Point,
+                 aug: pyautogui.Point,
+                 alch: pyautogui.Point,
+                 scour: pyautogui.Point,
+                 chaos: pyautogui.Point) -> None:
+        self.item: pyautogui.Point = item
+        self.map_top_left: pyautogui.Point = map_top_left
+        self.map_bottom_right: pyautogui.Point = map_bottom_right
+        self.alt: pyautogui.Point = alt
+        self.aug: pyautogui.Point = aug
+        self.alch: pyautogui.Point = alch
+        self.scour: pyautogui.Point = scour
+        self.chaos: pyautogui.Point = chaos
+        super().__init__()
 
-    except FileNotFoundError:
-        logging.error(f"Error: Config file not found at {config_file_path}.", exc_info=True)
-        return None  
-    except configparser.NoSectionError:
-        logging.error(f"Error: Missing section in config file.", exc_info=True)
-        return None
-    except configparser.NoOptionError:
-        logging.error(f"Error: Missing option in config file.", exc_info=True)
-        return None
-    except ValueError:
-        logging.error(f"Error: Could not convert value to float.", exc_info=True) 
-        return None
-    except Exception:
-        logging.error(f"An unexpected error occurred.", exc_info=True)
-        return None
+class ConfigurationAppSettings(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!AppSettings'
 
-def update_config(items: list[tuple[str, str, str]]) -> None:
-    logging.info(f"Updating config with: {items}.")
+    def __init__(self, pyautogui_pause: float, enable_pyautogui_failsafe: bool, enable_performance_logging: bool) -> None:
+        self.pyautogui_pause: float = pyautogui_pause
+        self.enable_pyautogui_failsafe: bool = enable_pyautogui_failsafe
+        self.enable_performance_logging: bool = enable_performance_logging
+        super().__init__()
 
-    config = configparser.ConfigParser()
-    config_path = os.path.join('src', 'config.ini')
+class ConfigurationLastState(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!LastState'
 
-    try:
-        config.read(config_path)
-        for section, option, value in items:
-            config.set(section, option, value)
+    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, regex_string: str, crafting_attempts: int) -> None:
+        self.crafting_target: CraftingTarget = crafting_target
+        self.map_craft_amount: int = map_craft_amount
+        self.regex_string: str = regex_string
+        self.crafting_attempts: int = crafting_attempts
+        super().__init__()
 
-        with open(config_path, 'w+') as config_file:
-            config.write(config_file)
+class Configuration(yaml.YAMLObject):
+    yaml_dumper = yaml.SafeDumper
+    yaml_loader = yaml.SafeLoader
+    yaml_tag = u'!Config'
 
-    except FileNotFoundError:
-        logging.error(f"Config file not found at {config_path}.", exc_info=True)
-        return None
-    except configparser.NoSectionError:
-        logging.error(f"Missing section in config file.", exc_info=True)
-        return None
-    except configparser.NoOptionError:
-        logging.error(f"Missing option in config file.", exc_info=True)
-        return None
-    except ValueError:
-        logging.error(f"Could not convert value to float.", exc_info=True) 
-        return None
-    except Exception:
-        logging.error(f"An unexpected error occurred.", exc_info=True)
-        return None
+    def __init__(self, coordinates: ConfigurationCoordinates, app_settings: ConfigurationAppSettings, last_state: ConfigurationLastState) -> None:
+        self.coordinates: ConfigurationCoordinates = coordinates
+        self.app_settings: ConfigurationAppSettings = app_settings
+        self.last_state: ConfigurationLastState = last_state
+        super().__init__()
+
+@decorators.singleton
+class ConfigManager:
+    CONFIG_PATH: LiteralString = os.path.join('src', 'config.yaml')
+
+    def __init__(self) -> None:
+        self._cfg = self.__parse_config()
+
+    def __parse_config(self) -> Configuration:
+        with open(self.CONFIG_PATH, mode='r', encoding='utf-8') as file:
+            return yaml.safe_load(file)
+    
+    def save_config(self, new_config: Configuration) -> None:
+        with open(self.CONFIG_PATH, mode='w', encoding='utf-8') as file:
+            yaml.safe_dump(data=new_config, stream=file, encoding='utf-8', sort_keys=False)
+
+        self.cfg = new_config
+        pass
+
+    @property
+    def cfg(self) -> Configuration:
+        return self._cfg
+    
+    @cfg.setter
+    def cfg(self, value: Configuration) -> None:
+        self._cfg = value
+        pass
+
+# Used for building a new config from scratch when needed
+# new_config = Configuration(
+#     ConfigurationCoordinates(pyautogui.Point(334, 455), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0)),
+#     ConfigurationAppSettings(0.03, True, False),
+#     ConfigurationLastState(CraftingTarget.GEAR, 15, "", 10))
+
+manager = ConfigManager()
+# manager.save_config(new_config)

@@ -1,52 +1,11 @@
 import logging
-import os
 import time
+from typing import Callable 
 import dearpygui.dearpygui as dpg
 import pyautogui
-from .. import config_manager as cfg
-from .. import gui_tags
 from . import elements
-
-def capture_image_position(image_file_name: str) -> tuple[int, int] | None:
-    width, height = pyautogui.size()
-    match height:
-        case 1080:
-            pass
-        case 1440:
-            split = image_file_name.split(os.path.extsep)
-            assert(len(split) == 2)
-            image_file_name = f"{split[0]}_1440{os.path.extsep}{split[1]}"
-        case _:
-            raise NotImplementedError("Auto-configure is only supported for 1080p and 1440p resolutions.")
-
-    image_path = os.path.join('Images', image_file_name)
-    try:
-        x, y = pyautogui.locateCenterOnScreen(image_path)
-        logging.info(f"Found image {image_file_name} at ({x}, {y})")
-        return (x, y)
-
-    except pyautogui.ImageNotFoundException:
-        logging.error(f"Wasn't able to find the image on screen: {image_file_name}.")
-        return None
-    except Exception:
-        logging.error(f"An unexpected error occurred.", exc_info=True)
-        return None
-    
-def capture_and_record_position(image_file_name: str, config_category: str, config_item_prefix: str) -> None:
-    position = capture_image_position(image_file_name)
-    if position:
-        x, y = position
-        screen_x, screen_y = pyautogui.size()
-        position_ratio_x: float = x / screen_x
-        position_ratio_y: float = y / screen_y
-
-        config_values = [
-            (config_category, f'{config_item_prefix}_x', '%.3f' % position_ratio_x),
-            (config_category, f'{config_item_prefix}_y', '%.3f' % position_ratio_y)
-        ]
-
-        cfg.update_config(config_values)
-    pass
+from .. import gui_tags
+from ..config_manager import manager, Configuration
 
 def __wait_for_confirmation(poll_rate:int = 20, failsafe_seconds: int = 10) -> bool:
     for _ in range(0, poll_rate * failsafe_seconds):
@@ -65,24 +24,63 @@ def __get_target_position() -> tuple[int, int] | None:
     
     return None
 
-def __record_position(sender, app_data, user_data: tuple[str, str]) -> None:
+def __record_position(sender, app_data, config_updater: Callable[[Configuration, tuple[int, int]], Configuration]) -> None:
+    dpg.set_item_label(gui_tags.CONFIGURATION_INFO_TEXT_TAG, app_data if app_data is not None else dpg.get_item_label(sender))
     dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=True)
 
     position = __get_target_position()
     if position:
-        x, y = position
-        width, height = pyautogui.size()
-        ratio_x = x / width
-        ratio_y = y / height
+        logging.info(f"Executing {config_updater.__name__} with x = {position[0]} and y = {position[1]}")
 
-        config_items = [
-            (user_data[0], f'{user_data[1]}_x', '%.3f' % ratio_x),
-            (user_data[0], f'{user_data[1]}_y', '%.3f' % ratio_y),
-        ]
-        cfg.update_config(config_items)
+        updated_config = config_updater(manager.cfg, position)
+        manager.save_config(updated_config)
         pass
 
     dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=False)    
+    pass
+
+def __update_alt_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.alt = new_pos
+    return new_config
+
+def __update_aug_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.aug = new_pos
+    return new_config
+
+def __update_alch_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.alch = new_pos
+    return new_config
+
+def __update_scour_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.scour = new_pos
+    return new_config
+
+def __update_chaos_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.chaos = new_pos
+    return new_config
+
+def __update_map_first_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.map_top_left = new_pos
+    return new_config
+
+def __update_map_second_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.map_bottom_right = new_pos
+    return new_config
+
+def __record_map_positions(sender, app_data) -> None:
+    __record_position(sender=sender, app_data="Capture Top-Left Map corner", config_updater=__update_map_first_position)
+
+    while dpg.is_key_down(dpg.mvKey_Spacebar) or dpg.is_key_down(dpg.mvKey_Escape):
+        time.sleep(1 / 20)
+
+    __record_position(sender=sender, app_data="Capture Bottom-Right Map corner", config_updater=__update_map_second_position)
     pass
 
 def __toggle_autogui_failsafe() -> None:
@@ -98,32 +96,34 @@ def __set_pyautogui_pause() -> None:
     pass
 
 def init(configuration_window_tag: int | str) -> None:
-    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=178, height=60, no_resize=True, no_move=True):
-        dpg.add_text(default_value="Press Space to record")
-        dpg.add_text(default_value="Press Esc to cancel")
+    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=314, height=80, no_resize=True, no_move=True):
+        dpg.add_spacer(height=2)
+        dpg.add_button(tag=gui_tags.CONFIGURATION_INFO_TEXT_TAG, enabled=False, width=300)
+        dpg.add_button(label="Press Space to record", enabled=False, width=300)
+        dpg.add_button(label="Press Esc to cancel", enabled=False, width=300)
         pass
 
     with dpg.window(tag=configuration_window_tag, label="Configuration", no_close=True):
         dpg.add_text(default_value="Must restart script to apply config changes")
 
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=('Coordinates', 'alt'), width=300)
-            elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=('Coordinates', 'aug'), width=300)
+            elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=__update_alt_position, width=300)
+            elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=__update_aug_position, width=300)
 
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alchemy orb position", callback=__record_position, user_data=('Coordinates', 'alch'), width=300)
-            elements.add_button(label="Capture Scouring orb position", callback=__record_position, user_data=('Coordinates', 'scour'), width=300)
+            elements.add_button(label="Capture Alchemy orb position", callback=__record_position, user_data=__update_alch_position, width=300)
+            elements.add_button(label="Capture Scouring orb position", callback=__record_position, user_data=__update_scour_position, width=300)
         
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture First Map position", callback=__record_position, user_data=('Coordinates', 'map'), width=300)
-            elements.add_button(label="Capture Chaos orb position", callback=__record_position, user_data=('Coordinates', 'chaos'), width=300)
+            elements.add_button(label="Capture Map position", callback=__record_map_positions, user_data=__update_map_first_position, width=300)
+            elements.add_button(label="Capture Chaos orb position", callback=__record_position, user_data=__update_chaos_position, width=300)
 
 
         with dpg.group(horizontal=True):
             dpg.add_text(default_value="Set pause after each PyAutoGui action:")
             dpg.add_input_float(
                 tag=gui_tags.PYAUTOGUI_PAUSE_TAG,
-                default_value=0.03,
+                default_value=manager.cfg.app_settings.pyautogui_pause,
                 max_value=1.0,
                 max_clamped=True,
                 min_value=0.025,
@@ -134,9 +134,13 @@ def init(configuration_window_tag: int | str) -> None:
             )
 
         dpg.add_checkbox(
-            label="Enable PyAutoGUI Failsafe",
-            default_value=True,
             tag=gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG,
+            label="Enable PyAutoGUI Failsafe",
+            default_value=manager.cfg.app_settings.enable_pyautogui_failsafe,
             callback=__toggle_autogui_failsafe
         )
-        dpg.add_checkbox(label="Enable performance logging", tag=gui_tags.PERFORMANCE_LOGGING_TAG)
+        dpg.add_checkbox(
+            tag=gui_tags.PERFORMANCE_LOGGING_TAG,
+            label="Enable performance logging",
+            default_value=manager.cfg.app_settings.enable_performance_logging
+        )
