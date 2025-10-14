@@ -1,6 +1,6 @@
 import logging
 import pyautogui
-import pyperclip #used to see what was copied.
+import pyperclip
 from . import decorators
 from .config_manager import manager
 
@@ -104,6 +104,13 @@ def use_aug():
 @decorators.timeit
 def use_alch(map_count):
     pyautogui.moveTo(manager.cfg.coordinates.alch)
+    pyautogui.rightClick()
+    hover_map(map_count)
+    pyautogui.leftClick()
+
+@decorators.timeit
+def use_chaos(map_count):
+    pyautogui.moveTo(manager.cfg.coordinates.chaos)
     pyautogui.rightClick()
     hover_map(map_count)
     pyautogui.leftClick()
