@@ -31,5 +31,5 @@ app_settings: !AppSettings
 last_state: !LastState
   crafting_target: Gear
   map_craft_amount: 12
-  regex_string: Smoking
+  regex_string: ''
   crafting_attempts: 50
