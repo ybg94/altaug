@@ -45,17 +45,18 @@ def use_regex(regex_text: str, max_attempts: int) -> None:
 
         while attempt <= max_attempts and map_count <= map_amount:
             logging.info(f"Map {map_count}, attempt: {attempt}")
+            crating_function = autogui.use_alch if not t17 else autogui.use_chaos
+
             if t17:
-                item = autogui.get_map_description(map_count)
-                item_info = item_processing.ItemInfo(item)
+                description = autogui.get_map_description(map_count)
+                item_info = item_processing.ItemInfo(description)
                 if item_info.match(regex, is_regex_inverted):
                     logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
                     map_count += 1
                     continue
-            if not t17:
-                item = __apply_craft(craft_func=autogui.use_alch, map_count=map_count)
-            else:
-                item = __apply_craft(craft_func=autogui.use_chaos, map_count=map_count)
+
+            item = __apply_craft(craft_func=crating_function, map_count=map_count)
+
             if item.match(regex, is_regex_inverted):
                 logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
                 map_count += 1

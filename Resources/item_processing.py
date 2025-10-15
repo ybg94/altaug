@@ -34,6 +34,7 @@ class ItemInfo:
             if item_base_match.group("class") == CraftingTarget.MAPS:
                 self.item_class = CraftingTarget.MAPS
             self.rarity = ItemRarity(item_base_match.group("rarity"))
+            # TODO: This doesn't actually work, not sure why but the group is None 
             if item_base_match.group("corrupted"):
                 self.is_corrupted = True
 
