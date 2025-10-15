@@ -104,8 +104,6 @@ def init(configuration_window_tag: int | str) -> None:
         pass
 
     with dpg.window(tag=configuration_window_tag, label="Configuration", no_close=True):
-        dpg.add_text(default_value="Must restart script to apply config changes")
-
         with dpg.group(horizontal=True):
             elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=__update_alt_position, width=300)
             elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=__update_aug_position, width=300)
