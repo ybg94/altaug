@@ -1,11 +1,47 @@
 import logging
 import time
-from typing import Callable 
+from typing import Callable, Any, Tuple
 import dearpygui.dearpygui as dpg
 import pyautogui
 from . import elements
 from .. import gui_tags
 from ..config_manager import manager, Configuration
+import os
+
+CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
+IMAGES_DIR = os.path.join(CURRENT_DIR,"..","..","Images")
+
+def load_images():
+    with dpg.texture_registry(show=False):
+
+        alt_path = os.path.join(IMAGES_DIR, "alt_orb.png")
+        aug_path = os.path.join(IMAGES_DIR, "aug_orb.png")
+        scour_path = os.path.join(IMAGES_DIR, "scour_orb.png")
+        alch_path = os.path.join(IMAGES_DIR, "alch_orb.png")
+        chaos_path = os.path.join(IMAGES_DIR, "chaos_orb.png")
+        map_path = os.path.join(IMAGES_DIR, "map.png")
+        bow_item_path = os.path.join(IMAGES_DIR, "bow_item.png")
+
+        width, height, channels, data = dpg.load_image(alt_path)
+        dpg.add_static_texture(width, height, data, tag="alt_orb_texture")
+
+        width, height, channels, data = dpg.load_image(aug_path)
+        dpg.add_static_texture(width, height, data, tag="aug_orb_texture")
+
+        width, height, channels, data = dpg.load_image(alch_path)
+        dpg.add_static_texture(width, height, data, tag="alch_orb_texture")
+
+        width, height, channels, data = dpg.load_image(scour_path)
+        dpg.add_static_texture(width, height, data, tag="scour_orb_texture")
+
+        width, height, channels, data = dpg.load_image(chaos_path)
+        dpg.add_static_texture(width, height, data, tag="chaos_orb_texture")
+
+        width, height, channels, data = dpg.load_image(map_path)
+        dpg.add_static_texture(width, height, data, tag="map_texture")
+
+        width, height, channels, data = dpg.load_image(bow_item_path)
+        dpg.add_static_texture(width, height, data, tag="bow_item_texture")
 
 def __wait_for_confirmation(poll_rate:int = 20, failsafe_seconds: int = 10) -> bool:
     for _ in range(0, poll_rate * failsafe_seconds):
@@ -24,8 +60,10 @@ def __get_target_position() -> tuple[int, int] | None:
     
     return None
 
-def __record_position(sender, app_data, config_updater: Callable[[Configuration, tuple[int, int]], Configuration]) -> None:
-    dpg.set_item_label(gui_tags.CONFIGURATION_INFO_TEXT_TAG, app_data if app_data is not None else dpg.get_item_label(sender))
+def __record_position(sender: int | str, app_data: Any, user_data: Tuple[str, Callable[[Configuration, tuple[int, int]], Configuration]]) -> None:
+    label_text, config_updater = user_data
+
+    dpg.set_item_label(gui_tags.CONFIGURATION_INFO_TEXT_TAG, label_text)
     dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=True)
 
     position = __get_target_position()
@@ -74,19 +112,19 @@ def __update_map_second_position(config: Configuration, new_pos: tuple[int, int]
     new_config.coordinates.map_bottom_right = new_pos
     return new_config
 
-def __record_map_positions(sender, app_data) -> None:
-    __record_position(sender=sender, app_data="Capture Top-Left Map corner", config_updater=__update_map_first_position)
+def __update_item_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.item = new_pos
+    return new_config
+
+def __record_map_positions(sender, app_data, user_data) -> None:
+    update_first, update_second = user_data
+    __record_position(sender=sender, app_data=None, user_data=("Capture Top-Left Map corner", update_first))
 
     while dpg.is_key_down(dpg.mvKey_Spacebar) or dpg.is_key_down(dpg.mvKey_Escape):
         time.sleep(1 / 20)
 
-    __record_position(sender=sender, app_data="Capture Bottom-Right Map corner", config_updater=__update_map_second_position)
-    pass
-
-def __toggle_autogui_failsafe() -> None:
-    value = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
-    logging.debug(f"Failsafe checkbox state is {value}.")
-    pyautogui.FAILSAFE = value
+    __record_position(sender=sender, app_data=None, user_data=("Capture Bottom-Right Map corner",update_second))
     pass
 
 def __set_pyautogui_pause() -> None:
@@ -96,7 +134,7 @@ def __set_pyautogui_pause() -> None:
     pass
 
 def init(configuration_window_tag: int | str) -> None:
-    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=314, height=80, no_resize=True, no_move=True):
+    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=314, height=150, no_resize=True, no_move=True):
         dpg.add_spacer(height=2)
         dpg.add_button(tag=gui_tags.CONFIGURATION_INFO_TEXT_TAG, enabled=False, width=300)
         dpg.add_button(label="Press Space to record", enabled=False, width=300)
@@ -104,21 +142,22 @@ def init(configuration_window_tag: int | str) -> None:
         pass
 
     with dpg.window(tag=configuration_window_tag, label="Configuration", no_close=True):
-        with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=__update_alt_position, width=300)
-            elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=__update_aug_position, width=300)
-
-        with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alchemy orb position", callback=__record_position, user_data=__update_alch_position, width=300)
-            elements.add_button(label="Capture Scouring orb position", callback=__record_position, user_data=__update_scour_position, width=300)
+        dpg.add_text("Configuration Buttons:")
         
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Map position", callback=__record_map_positions, user_data=__update_map_first_position, width=300)
-            elements.add_button(label="Capture Chaos orb position", callback=__record_position, user_data=__update_chaos_position, width=300)
+            dpg.add_image_button(texture_tag="bow_item_texture", callback=__record_position, user_data=("Capture Item Window position", __update_item_position), width=60, height=120)
 
+            with dpg.group():
+                with dpg.group(horizontal=True):
+                    dpg.add_image_button(texture_tag="alt_orb_texture",callback=__record_position,user_data=("Capture Alteration Orb position", __update_alt_position),width=55, height=55)
+                    dpg.add_image_button(texture_tag="aug_orb_texture",callback=__record_position,user_data=("Capture Augmentation Orb position", __update_aug_position),width=55, height=55)
+                    dpg.add_image_button(texture_tag="chaos_orb_texture",callback=__record_position,user_data=("Capture Chaos Orb position", __update_chaos_position),width=55, height=55)
+                with dpg.group(horizontal=True):  
+                    dpg.add_image_button(texture_tag="alch_orb_texture", callback=__record_position, user_data=("Capture Alchemy Orb position", __update_alch_position), width=55, height=55)
+                    dpg.add_image_button(texture_tag="scour_orb_texture",callback=__record_position,user_data=("Capture Scouring Orb position", __update_scour_position),width=55, height=55)
+                    dpg.add_image_button(texture_tag="map_texture", callback=__record_map_positions, user_data=(__update_map_first_position, __update_map_second_position), width=55, height=55)
 
         with dpg.group(horizontal=True):
-            dpg.add_text(default_value="Set pause after each PyAutoGui action:")
             dpg.add_input_float(
                 tag=gui_tags.PYAUTOGUI_PAUSE_TAG,
                 default_value=manager.cfg.app_settings.pyautogui_pause,
@@ -130,13 +169,8 @@ def init(configuration_window_tag: int | str) -> None:
                 callback=__set_pyautogui_pause,
                 width=100
             )
-
-        dpg.add_checkbox(
-            tag=gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG,
-            label="Enable PyAutoGUI Failsafe",
-            default_value=manager.cfg.app_settings.enable_pyautogui_failsafe,
-            callback=__toggle_autogui_failsafe
-        )
+            dpg.add_text(default_value="Set pause after each PyAutoGui action (should be higher than ingame ping)")
+            
         dpg.add_checkbox(
             tag=gui_tags.PERFORMANCE_LOGGING_TAG,
             label="Enable performance logging",
