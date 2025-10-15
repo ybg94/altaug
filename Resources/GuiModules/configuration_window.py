@@ -1,9 +1,9 @@
+from enum import StrEnum
+from typing import Callable 
 import logging
 import time
-from typing import Callable 
 import dearpygui.dearpygui as dpg
 import pyautogui
-from . import elements
 from .. import gui_tags
 from ..config_manager import manager, Configuration
 
@@ -25,7 +25,7 @@ def __get_target_position() -> tuple[int, int] | None:
     return None
 
 def __record_position(sender, app_data, config_updater: Callable[[Configuration, tuple[int, int]], Configuration]) -> None:
-    dpg.set_item_label(gui_tags.CONFIGURATION_INFO_TEXT_TAG, app_data if app_data is not None else dpg.get_item_label(sender))
+    dpg.set_item_label(gui_tags.CONFIGURATION_INFO_TEXT_TAG, app_data)
     dpg.configure_item(gui_tags.CONFIGURATION_INFO_MODAL_TAG, show=True)
 
     position = __get_target_position()
@@ -64,6 +64,11 @@ def __update_chaos_position(config: Configuration, new_pos: tuple[int, int]) -> 
     new_config.coordinates.chaos = new_pos
     return new_config
 
+def __update_item_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
+    new_config = config
+    new_config.coordinates.item = new_pos
+    return new_config
+
 def __update_map_first_position(config: Configuration, new_pos: tuple[int, int]) -> Configuration:
     new_config = config
     new_config.coordinates.map_top_left = new_pos
@@ -74,13 +79,56 @@ def __update_map_second_position(config: Configuration, new_pos: tuple[int, int]
     new_config.coordinates.map_bottom_right = new_pos
     return new_config
 
-def __record_map_positions(sender, app_data) -> None:
+def __record_map_positions(sender, app_data, config_updater) -> None:
     __record_position(sender=sender, app_data="Capture Top-Left Map corner", config_updater=__update_map_first_position)
 
     while dpg.is_key_down(dpg.mvKey_Spacebar) or dpg.is_key_down(dpg.mvKey_Escape):
         time.sleep(1 / 20)
 
     __record_position(sender=sender, app_data="Capture Bottom-Right Map corner", config_updater=__update_map_second_position)
+    pass
+
+class CoordinateLocation(StrEnum):
+    Pending = 'Capture position for...'
+    Item = 'Item'
+    Map = 'Map'
+    Alt = 'Alteration orb'
+    Aug = 'Augmentation orb'
+    Alch = 'Alchemy orb'
+    Scour = 'Scouring orb'
+    Chaos = 'Chaos orb'
+
+callback_lookup: dict[
+    CoordinateLocation,
+    tuple[Callable[..., Configuration], None], Callable[..., Configuration]
+] = {
+    CoordinateLocation.Item: (__record_position, __update_item_position),
+    CoordinateLocation.Map: (__record_map_positions, __update_map_first_position),
+    CoordinateLocation.Alt: (__record_position, __update_alt_position),
+    CoordinateLocation.Aug: (__record_position, __update_aug_position),
+    CoordinateLocation.Alch: (__record_position, __update_alch_position),
+    CoordinateLocation.Scour: (__record_position, __update_scour_position),
+    CoordinateLocation.Chaos: (__record_position, __update_chaos_position),
+}
+modal_title_lookup: dict[CoordinateLocation, str] = {
+    CoordinateLocation.Item: 'Capture Item position',
+    CoordinateLocation.Map: 'This is hardcoded in __record_map_positions',
+    CoordinateLocation.Alt: 'Capture Alteration orb position',
+    CoordinateLocation.Aug: 'Capture Augmentation orb position',
+    CoordinateLocation.Alch: 'Capture Alchemy orb position',
+    CoordinateLocation.Scour: 'Caption Scouring orb position',
+    CoordinateLocation.Chaos: 'Capture Chaos orb position',
+}
+
+def __update_select_target_state(sender, app_data) -> None:
+    is_show = app_data != CoordinateLocation.Pending
+    dpg.configure_item(gui_tags.CONFIGURATION_CONFIGURE_BTN_TAG, show=is_show)
+    pass
+
+def __select_configuration_handler() -> None:
+    target = CoordinateLocation(dpg.get_value(gui_tags.CONFIGURATION_TARGET_COMBO_TAG))
+    record_callback, update_callback = callback_lookup[target]
+    record_callback(sender=gui_tags.CONFIGURATION_TARGET_COMBO_TAG, app_data=modal_title_lookup[target], config_updater=update_callback)
     pass
 
 def __toggle_autogui_failsafe() -> None:
@@ -105,20 +153,11 @@ def init(configuration_window_tag: int | str) -> None:
 
     with dpg.window(tag=configuration_window_tag, label="Configuration", no_close=True):
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alteration orb position", callback=__record_position, user_data=__update_alt_position, width=300)
-            elements.add_button(label="Capture Augmentation orb position", callback=__record_position, user_data=__update_aug_position, width=300)
+            dpg.add_combo(tag=gui_tags.CONFIGURATION_TARGET_COMBO_TAG, default_value=CoordinateLocation.Pending, items=[e.value for e in CoordinateLocation], callback=__update_select_target_state)
+            dpg.add_button(tag=gui_tags.CONFIGURATION_CONFIGURE_BTN_TAG, label="Configure position", show=False, width=200, callback=__select_configuration_handler)
 
         with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Alchemy orb position", callback=__record_position, user_data=__update_alch_position, width=300)
-            elements.add_button(label="Capture Scouring orb position", callback=__record_position, user_data=__update_scour_position, width=300)
-        
-        with dpg.group(horizontal=True):
-            elements.add_button(label="Capture Map position", callback=__record_map_positions, user_data=__update_map_first_position, width=300)
-            elements.add_button(label="Capture Chaos orb position", callback=__record_position, user_data=__update_chaos_position, width=300)
-
-
-        with dpg.group(horizontal=True):
-            dpg.add_text(default_value="Set pause after each PyAutoGui action:")
+            dpg.add_text(default_value="Set PyAutoGui PAUSE (should be >ping in game):")
             dpg.add_input_float(
                 tag=gui_tags.PYAUTOGUI_PAUSE_TAG,
                 default_value=manager.cfg.app_settings.pyautogui_pause,
