@@ -25,6 +25,8 @@ def __save_state_to_config() -> None:
     manager.save_config(config)
     pass
 
+
+
 def init_gui() -> None:
     dpg.create_context()
     dpg.set_exit_callback(__save_state_to_config)
@@ -47,6 +49,7 @@ def init_gui() -> None:
     crafting_window_tag = dpg.generate_uuid()
     script_log_tag = dpg.generate_uuid()
 
+    configuration_window.load_images()
     configuration_window.init(configuration_window_tag)
     regex_library_modal.init()
     crafting_window.init(crafting_window_tag)
