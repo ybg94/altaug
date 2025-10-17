@@ -11,8 +11,6 @@ Map:
 Jewelry:
   Amulet:
     +1 Skill: ^Exalter's
-  Belt:
-    Hello: World
 Weapon:
   Spine Bow:
     PH: Placeholder

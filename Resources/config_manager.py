@@ -56,12 +56,12 @@ class ConfigurationLastState(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!LastState'
 
-    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, is_t17: bool, regex_string: str, crafting_attempts: int) -> None:
+    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, is_t17: bool, regex_string: str, max_currency_use: int) -> None:
         self.crafting_target: CraftingTarget = crafting_target
         self.map_craft_amount: int = map_craft_amount
         self.is_t17: bool = is_t17
         self.regex_string: str = regex_string
-        self.crafting_attempts: int = crafting_attempts
+        self.max_currency_use: int = max_currency_use
         super().__init__()
 
 class Configuration(yaml.YAMLObject):

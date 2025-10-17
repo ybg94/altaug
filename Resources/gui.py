@@ -20,7 +20,7 @@ def __save_state_to_config() -> None:
     config.last_state.map_craft_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
     config.last_state.is_t17 = dpg.get_value(gui_tags.MAP_TYPE_CHECK)
     config.last_state.regex_string = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
-    config.last_state.crafting_attempts = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
+    config.last_state.max_currency_use = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
 
     manager.save_config(config)
     pass
