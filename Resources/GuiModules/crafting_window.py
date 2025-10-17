@@ -1,11 +1,17 @@
 import dearpygui.dearpygui as dpg
+from . import constants
+from . import elements
 from .. import crafting_processor
 from .. import gui_tags
 from ..config_manager import manager
-from . import constants
-from . import elements
 
 def init(crafting_window_tag: int | str) -> None:
+    MAX_CURRENCY_HINT = """When the craft uses multiple currency stacks, max currency
+refers the highest amount used from one of the stacks
+
+e.g.: when crafting with alt/aug with 20 currency max,
+      the process will stop when 20 alts are used"""
+
     def combo_callback(sender, app_data):
         target_values = [constants.CRAFTING_TARGETS[1]]
         if app_data in target_values:
@@ -26,15 +32,17 @@ def init(crafting_window_tag: int | str) -> None:
                 dpg.add_text("Number of maps to craft:")
                 dpg.add_input_int(tag=gui_tags.MAP_AMOUNT_INPUT_TAG, default_value=manager.cfg.last_state.map_craft_amount, width=128)
                 dpg.add_text("T17")
-                dpg.add_checkbox(tag=gui_tags.MAP_TYPE_CHECK, default_value=False)
+                dpg.add_checkbox(tag=gui_tags.MAP_TYPE_CHECK, default_value=manager.cfg.last_state.is_t17)
 
         dpg.add_text("RegEx input (crafting stops when RegEx matches the item)")
         dpg.add_text("When copying from poe.re make sure to NOT include quotes")
         dpg.add_input_text(tag=gui_tags.REGEX_INPUT_TAG, height=48, width=764, default_value=manager.cfg.last_state.regex_string)
 
         with dpg.group(horizontal=True):
-            dpg.add_text(default_value="Max crafting attempts:")
-            dpg.add_input_int(tag=gui_tags.MAX_ATTEMPT_INPUT_TAG, default_value=manager.cfg.last_state.crafting_attempts, width=128)
+            dpg.add_text(default_value="Max currency to use:")
+            dpg.add_input_int(tag=gui_tags.MAX_ATTEMPT_INPUT_TAG, default_value=manager.cfg.last_state.max_currency_use, width=128)
+            with dpg.tooltip(gui_tags.MAX_ATTEMPT_INPUT_TAG):
+                dpg.add_text(MAX_CURRENCY_HINT)
 
         elements.add_button(label="Start crafting", callback=crafting_processor.start_crafting)
 

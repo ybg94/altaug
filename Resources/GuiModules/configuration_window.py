@@ -1,12 +1,11 @@
-import logging
-import time
 from typing import Callable, Any, Tuple
+import logging
+import os
+import time
 import dearpygui.dearpygui as dpg
 import pyautogui
-from . import elements
 from .. import gui_tags
 from ..config_manager import manager, Configuration
-import os
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 IMAGES_DIR = os.path.join(CURRENT_DIR,"..","..", "src", "Images")
@@ -134,7 +133,7 @@ def __set_pyautogui_pause() -> None:
     pass
 
 def init(configuration_window_tag: int | str) -> None:
-    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=314, height=150, no_resize=True, no_move=True):
+    with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=314, height=60, no_resize=True, no_move=True):
         dpg.add_spacer(height=2)
         dpg.add_button(tag=gui_tags.CONFIGURATION_INFO_TEXT_TAG, enabled=False, width=300)
         dpg.add_button(label="Press Space to record", enabled=False, width=300)

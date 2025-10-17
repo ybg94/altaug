@@ -31,5 +31,6 @@ app_settings: !AppSettings
 last_state: !LastState
   crafting_target: Gear
   map_craft_amount: 13
-  regex_string: ^Blazing|^Unassailable|^Seraphim's|of the Polymath$
-  crafting_attempts: 20
+  is_t17: false
+  regex_string: '!efl|old$|gen|r at|o al'
+  max_currency_use: 20

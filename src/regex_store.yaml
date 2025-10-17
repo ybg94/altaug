@@ -1,23 +1,16 @@
 Armour:
   Lich's Circlet:
-    Another circlet regex: Hello there
-    Regex title Three: Regex string 3
-    Yet another test: General Kenobi
-  Vaal Gauntlets:
-    New regex: New regex added
+    T1 ES/Int: ^Blazing|^Unassailable|^Seraphim's|of the Polymath$
   Warlock Boots:
-    Regex title One: Regex string 1
-    Regex title Two: Edited regex 2
+    T1 ES/MS/Int: ^Seething|^Unassailable|^Cheetah's|^Hellion's|of the Genius$
 Map:
   Tier 16:
-    Regex title Seven: Regex string 7
+    No ele/leech/regen: '!efl|old$|gen|r at|o al'
   Tier 17:
-    Regex title Five: Regex string 5
-    Regex title Six: Regex string 6
+    No reflect/crit/-max: '!o al|ra c|wak|r li|f ph|lier'
+Jewelry:
+  Amulet:
+    +1 Skill: ^Exalter's
 Weapon:
-  Imbued Wand:
-    ffff: regex
-  Opal Sceptre:
-    New scepter regex: New regex test
   Spine Bow:
-    Regex title Four: Regex string 4
+    PH: Placeholder

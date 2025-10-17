@@ -3,9 +3,9 @@
 #kipper86
 #niirn
 
-import Resources.gui as gui
-import logging
 from logging.handlers import RotatingFileHandler
+import logging
+from Resources import gui
 
 file_log_handler = RotatingFileHandler('app.log', maxBytes=1_000_000, backupCount=2, encoding='utf-8')
 logging.basicConfig(

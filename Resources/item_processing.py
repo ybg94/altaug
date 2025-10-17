@@ -66,6 +66,9 @@ class ItemInfo:
         return logs
 
     def match(self, regex: re.Pattern, is_regex_inverted: bool = False) -> bool:
+        if (self.rarity == ItemRarity.NORMAL):
+            return False
+
         match = regex.search(self.description)
         if (match):
             return not is_regex_inverted

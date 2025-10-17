@@ -46,9 +46,8 @@ class ConfigurationAppSettings(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!AppSettings'
 
-    def __init__(self, pyautogui_pause: float, enable_pyautogui_failsafe: bool, enable_performance_logging: bool) -> None:
+    def __init__(self, pyautogui_pause: float, enable_performance_logging: bool) -> None:
         self.pyautogui_pause: float = pyautogui_pause
-        self.enable_pyautogui_failsafe: bool = enable_pyautogui_failsafe
         self.enable_performance_logging: bool = enable_performance_logging
         super().__init__()
 
@@ -57,11 +56,12 @@ class ConfigurationLastState(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!LastState'
 
-    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, regex_string: str, crafting_attempts: int) -> None:
+    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, is_t17: bool, regex_string: str, max_currency_use: int) -> None:
         self.crafting_target: CraftingTarget = crafting_target
         self.map_craft_amount: int = map_craft_amount
+        self.is_t17: bool = is_t17
         self.regex_string: str = regex_string
-        self.crafting_attempts: int = crafting_attempts
+        self.max_currency_use: int = max_currency_use
         super().__init__()
 
 class Configuration(yaml.YAMLObject):
@@ -78,8 +78,15 @@ class Configuration(yaml.YAMLObject):
 @decorators.singleton
 class ConfigManager:
     CONFIG_PATH: LiteralString = os.path.join('src', 'config.yaml')
+    DEFAULT_CONFIG: Configuration = Configuration(
+        ConfigurationCoordinates(pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0)),
+        ConfigurationAppSettings(0.03, False),
+        ConfigurationLastState(CraftingTarget.GEAR, 15, False, "", 10))
 
     def __init__(self) -> None:
+        if not os.path.isfile(self.CONFIG_PATH):
+            self.save_config(self.DEFAULT_CONFIG)
+
         self._cfg = self.__parse_config()
 
     def __parse_config(self) -> Configuration:
@@ -102,11 +109,4 @@ class ConfigManager:
         self._cfg = value
         pass
 
-# Used for building a new config from scratch when needed
-# new_config = Configuration(
-#     ConfigurationCoordinates(pyautogui.Point(334, 455), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0)),
-#     ConfigurationAppSettings(0.03, True, False),
-#     ConfigurationLastState(CraftingTarget.GEAR, 15, "", 10))
-
 manager = ConfigManager()
-# manager.save_config(new_config)
