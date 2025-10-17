@@ -14,18 +14,16 @@ def __save_state_to_config() -> None:
     config = manager.cfg
 
     config.app_settings.pyautogui_pause = dpg.get_value(gui_tags.PYAUTOGUI_PAUSE_TAG)
-    config.app_settings.enable_pyautogui_failsafe = dpg.get_value(gui_tags.PYAUTOGUI_FAILSAFE_TOGGLE_TAG)
     config.app_settings.enable_performance_logging = dpg.get_value(gui_tags.PERFORMANCE_LOGGING_TAG)
 
     config.last_state.crafting_target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
     config.last_state.map_craft_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
+    config.last_state.is_t17 = dpg.get_value(gui_tags.MAP_TYPE_CHECK)
     config.last_state.regex_string = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
     config.last_state.crafting_attempts = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
 
     manager.save_config(config)
     pass
-
-
 
 def init_gui() -> None:
     dpg.create_context()

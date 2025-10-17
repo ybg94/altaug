@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Callable, Any
+from typing import Callable
 import logging
 import re
 import time
@@ -91,6 +91,8 @@ def use_regex(regex_text: str, max_attempts: int) -> None:
 def start_crafting() -> None:
     regex_input: str = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
     max_attempts: int = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
+    if (len(regex_input) == 0):
+        logging.info("No regex detected, ensure a regex is present before beginning crafting.")
 
     #sleep to give user 3 seconds to switch to PoE client
     time.sleep(3)
@@ -98,10 +100,7 @@ def start_crafting() -> None:
     start_time: datetime = datetime.now()
     logging.info(f"🔹 Started rolling at {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
 
-    if (len(regex_input) > 0):
-        use_regex(regex_input, max_attempts)
-    else:
-        logging.info("No regex detected, ensure a regex is present before beginning crafting.")
+    use_regex(regex_input, max_attempts)
 
     # --- End timestamp ---
     end_time = datetime.now()

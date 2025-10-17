@@ -64,11 +64,13 @@ def __selector_regex_selected(sender, regex_title: str) -> None:
 
 def __selector_confirm_selected_regex() -> None:
     item_type = dpg.get_value(gui_tags.REGEX_WIZARD_SELECTOR_COMBO_TYPE_TAG)
+    item_base = dpg.get_value(gui_tags.REGEX_WIZARD_SELECTOR_COMBO_BASE_TAG)
     crafting_target = constants.ITEM_TYPE_TO_CRAFTING_TARGET_LOOKUP[item_type]
 
     dpg.set_value(gui_tags.REGEX_INPUT_TAG, dpg.get_value(gui_tags.REGEX_WIZARD_SELECTOR_REGEX_PREVIEW_TAG))
     dpg.set_value(gui_tags.CRAFTING_TARGET_COMBO_TAG, crafting_target)
     dpg.configure_item(gui_tags.MAP_HIDDEN_GROUP_TAG, show=True if crafting_target == constants.CraftingTarget.MAPS else False)
+    dpg.set_value(gui_tags.MAP_TYPE_CHECK, item_base == 'Tier 17')
     dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=False)
     pass
 
@@ -197,7 +199,7 @@ def init() -> None:
     global regex_lookup
     regex_lookup = lookup_manager.read()
 
-    with dpg.window(tag=gui_tags.REGEX_WIZARD_MODAL_TAG, width=214, height=219, modal=True, show=False, no_title_bar=True):
+    with dpg.window(tag=gui_tags.REGEX_WIZARD_MODAL_TAG, width=214, height=219, modal=True, show=False, no_title_bar=True, no_resize=True):
         with dpg.group(horizontal=True):
             with dpg.group(tag=gui_tags.REGEX_WIZARD_LOOKUP_SELECTOR_GROUP_TAG, show=True):
                 elements.add_button(label="Edit library", callback=__selector_switch_to_editor)

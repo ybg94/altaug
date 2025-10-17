@@ -9,6 +9,7 @@ CRAFTING_TARGETS: list[str] = [CraftingTarget.GEAR, CraftingTarget.MAPS]
 ITEM_TYPE_TO_CRAFTING_TARGET_LOOKUP: dict[str, str] = {
     "Armour": CRAFTING_TARGETS[0],
     "Weapon": CRAFTING_TARGETS[0],
+    "Jewelry": CRAFTING_TARGETS[0],
     "Map": CRAFTING_TARGETS[1],
 }
 

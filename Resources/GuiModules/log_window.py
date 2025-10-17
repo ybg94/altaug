@@ -1,6 +1,6 @@
 import dearpygui.dearpygui as dpg
-from .. import gui_tags
 from . import elements
+from .. import gui_tags
 
 def init(script_log_tag: int | str) -> None:
     with dpg.window(tag=script_log_tag, label="Script log", no_close=True):
