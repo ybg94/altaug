@@ -11,14 +11,20 @@ from . import gui_tags
 from . import item_processing
 
 @decorators.timeit
-def __apply_craft(craft_func: Callable[..., None], map_count: int | None = None) -> item_processing.ItemInfo:
+def __apply_craft(craft_func: Callable[..., None] | None, map_count: int | None = None) -> item_processing.ItemInfo:
+    def get_item_info() -> item_processing.ItemInfo:
+        adv_desc: str = autogui.get_map_description(map_count) if map_count is not None else autogui.get_item_advanced_description()
+        return item_processing.ItemInfo(adv_desc)
+
+    if craft_func is None:
+        return get_item_info()
+
     if map_count is not None:
         craft_func(map_count)
     else:
         craft_func()
 
-    adv_desc: str = autogui.get_map_description(map_count) if map_count is not None else autogui.get_item_advanced_description()
-    item_info = item_processing.ItemInfo(adv_desc)
+    item_info = get_item_info()
     if map_count is None:
         logs: list[str] = item_info.get_affix_logs(True if map_count is not None else False)
         logs.append(f"After executing {craft_func.__name__}")
@@ -39,8 +45,9 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
     target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
     if (target == CraftingTarget.MAPS):
         map_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
-        t17 = dpg.get_value(gui_tags.MAP_TYPE_CHECK)
-        crating_function = autogui.use_alch if not t17 else autogui.use_chaos
+        is_t17 = dpg.get_value(gui_tags.MAP_TYPE_CHECK)
+        crating_function = autogui.use_alch if not is_t17 else autogui.use_chaos
+        reset_function = autogui.use_scour if not is_t17 else None
         currency_used = 0
 
         for map_count in range(1, map_amount + 1):
@@ -52,6 +59,9 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
                 logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
                 continue
 
+            if (item_info.rarity == item_processing.ItemRarity.RARE):
+                __apply_craft(craft_func=reset_function, map_count=map_count)
+
             while currency_used < max_currency_use:
                 item = __apply_craft(craft_func=crating_function, map_count=map_count)
                 currency_used += 1
@@ -59,8 +69,8 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
                 if item.match(regex, is_regex_inverted):
                     logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
                     break
-                elif not t17:
-                    autogui.use_scour(map_count)
+
+                __apply_craft(craft_func=reset_function, map_count=map_count)
                 pass
 
             if (currency_used == max_currency_use):
