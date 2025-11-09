@@ -11,9 +11,9 @@ class ItemRarity(StrEnum):
     RARE = 'Rare'
     UNIQUE = 'Unique'
 
-ITEM_BASE_REGEX = re.compile(r"^Item Class: (?P<class>\w*)$\s*^Rarity:\s(?P<rarity>\w*)$.*^(?P<corrupted>Corrupted)?$", re.MULTILINE | re.DOTALL)
+ITEM_BASE_REGEX = re.compile(r"^Item Class: (?P<class>[\w ]*)$\s*^Rarity:\s(?P<rarity>\w*)$.*^(?P<corrupted>Corrupted)?$", re.MULTILINE | re.DOTALL)
 AFFIX_REGEX = re.compile(
-    r"^{ (?:Master Crafted )?(?P<affix_type>Prefix|Suffix) Modifier \"(?P<affix_name>[\w\s'-]*)\" (?:\((?P<tier>(?:Rank|Tier): \d*)\))?[^(?:\r\n|\n|\r)]*$(?:\r\n|\n|\r)(?P<description>[^{]*)(?={?)",
+    r"^{ (?:Master Crafted )?(?P<affix_type>Prefix|Suffix) Modifier \"(?P<affix_name>[\w\s'-]*)\" (?:\((?P<tier>(?:Rank|Tier): \d*)\))?[^(?:\r\n|\n|\r)]*$(?:\r\n|\n|\r)(?P<description>[^{]*?)(?=(?:\n\n))",
     re.MULTILINE
 )
 
