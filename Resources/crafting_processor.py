@@ -81,7 +81,8 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
 
     elif (target == CraftingTarget.GEAR):
         item = item_processing.ItemInfo(autogui.get_item_advanced_description())
-
+        is_prefix_checked = dpg.get_value(gui_tags.AFFIX_PREFIX_CHECK)
+        is_suffix_checked = dpg.get_value(gui_tags.AFFIX_SUFFIX_CHECK)
         if item.match(regex):
             logging.info(f"Item already has correct modifiers")
             return
@@ -94,6 +95,13 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
 
             if item.is_affixes_full():
                 continue
+            
+            if is_prefix_checked:
+                if item.prefixes:
+                    continue
+            elif is_suffix_checked:
+                if item.suffixes:
+                    continue       
 
             item = __apply_craft(autogui.use_aug)
             if item.match(regex):
