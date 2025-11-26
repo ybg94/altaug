@@ -13,11 +13,19 @@ e.g.: when crafting with alt/aug with 20 currency max,
       the process will stop when 20 alts are used"""
 
     def combo_callback(sender, app_data):
-        target_values = [constants.CRAFTING_TARGETS[1]]
-        if app_data in target_values:
-            dpg.show_item(gui_tags.MAP_HIDDEN_GROUP_TAG)
-        else:
-            dpg.hide_item(gui_tags.MAP_HIDDEN_GROUP_TAG)
+        show_map = (app_data == constants.CraftingTarget.MAPS)
+        dpg.configure_item(gui_tags.MAP_HIDDEN_GROUP_TAG, show=show_map)
+
+        show_affix = (app_data == constants.CraftingTarget.GEAR)
+        dpg.configure_item(gui_tags.AFFIX_HIDDEN_GROUP_TAG, show=show_affix)
+
+    def affix_checkbox_callback(sender, app_data):
+        if not app_data:
+            return
+        if sender == gui_tags.AFFIX_PREFIX_CHECK:
+            dpg.set_value(gui_tags.AFFIX_SUFFIX_CHECK, False)
+        elif sender == gui_tags.AFFIX_SUFFIX_CHECK:
+            dpg.set_value(gui_tags.AFFIX_PREFIX_CHECK, False)
 
     with dpg.window(tag=crafting_window_tag, label="Crafting target", no_close=True):
         elements.add_button(label="Open RegEx Library", callback=lambda: dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=True))
@@ -33,6 +41,14 @@ e.g.: when crafting with alt/aug with 20 currency max,
                 dpg.add_input_int(tag=gui_tags.MAP_AMOUNT_INPUT_TAG, default_value=manager.cfg.last_state.map_craft_amount, width=128)
                 dpg.add_text("T17")
                 dpg.add_checkbox(tag=gui_tags.MAP_TYPE_CHECK, default_value=manager.cfg.last_state.is_t17)
+            
+            default_group_affix_show = True if default_crafting_target == constants.CraftingTarget.GEAR else False
+            with dpg.group(tag=gui_tags.AFFIX_HIDDEN_GROUP_TAG, show=default_group_affix_show, horizontal=True):
+                dpg.add_text("Only looking for:")
+                dpg.add_text("Prefix")
+                dpg.add_checkbox(tag=gui_tags.AFFIX_PREFIX_CHECK, default_value=manager.cfg.last_state.is_pre, callback=affix_checkbox_callback)
+                dpg.add_text("Suffix")
+                dpg.add_checkbox(tag=gui_tags.AFFIX_SUFFIX_CHECK, default_value=manager.cfg.last_state.is_suff, callback=affix_checkbox_callback)
 
         dpg.add_text("RegEx input (crafting stops when RegEx matches the item)")
         dpg.add_text("When copying from poe.re make sure to NOT include quotes")

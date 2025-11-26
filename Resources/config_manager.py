@@ -56,12 +56,14 @@ class ConfigurationLastState(yaml.YAMLObject):
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!LastState'
 
-    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, is_t17: bool, regex_string: str, max_currency_use: int) -> None:
+    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, is_t17: bool, regex_string: str, max_currency_use: int, is_pre: bool, is_suff: bool) -> None:
         self.crafting_target: CraftingTarget = crafting_target
         self.map_craft_amount: int = map_craft_amount
         self.is_t17: bool = is_t17
         self.regex_string: str = regex_string
         self.max_currency_use: int = max_currency_use
+        self.is_pre: bool = is_pre
+        self.is_suff: bool = is_suff
         super().__init__()
 
 class Configuration(yaml.YAMLObject):
@@ -81,7 +83,7 @@ class ConfigManager:
     DEFAULT_CONFIG: Configuration = Configuration(
         ConfigurationCoordinates(pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0)),
         ConfigurationAppSettings(0.03, False),
-        ConfigurationLastState(CraftingTarget.GEAR, 15, False, "", 10))
+        ConfigurationLastState(CraftingTarget.GEAR, 15, False, "", 10, False, False))
 
     def __init__(self) -> None:
         if not os.path.isfile(self.CONFIG_PATH):
