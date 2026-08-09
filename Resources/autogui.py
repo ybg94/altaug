@@ -43,7 +43,7 @@ def copy_map(map_count):
 @decorators.timeit
 def get_item_advanced_description() -> str:
     hover_item()
-    pyautogui.hotkey("ctrl", "alt", "c")
+    pyautogui.hotkey("ctrl", "c")
     return pyperclip.paste()
 
 @decorators.timeit

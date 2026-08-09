@@ -28,7 +28,9 @@ e.g.: when crafting with alt/aug with 20 currency max,
             dpg.set_value(gui_tags.AFFIX_PREFIX_CHECK, False)
 
     with dpg.window(tag=crafting_window_tag, label="Crafting target", no_close=True):
-        elements.add_button(label="Open RegEx Library", callback=lambda: dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=True))
+        elements.add_button(label="Regex Generator", callback=lambda: dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=True))
+        elements.add_button(label="Favorites", callback=lambda: dpg.configure_item(gui_tags.REGEX_FAVORITES_MODAL_TAG, show=True))
+
 
         with dpg.group(horizontal=True):
             dpg.add_text("Select crafting target:")

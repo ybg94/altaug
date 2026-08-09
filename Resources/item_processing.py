@@ -13,7 +13,7 @@ class ItemRarity(StrEnum):
 
 ITEM_BASE_REGEX = re.compile(r"^Item Class: (?P<class>[\w ]*)$\s*^Rarity:\s(?P<rarity>\w*)$.*^(?P<corrupted>Corrupted)?$", re.MULTILINE | re.DOTALL)
 AFFIX_REGEX = re.compile(
-    r"^{ (?:Master Crafted )?(?P<affix_type>Prefix|Suffix) Modifier \"(?P<affix_name>[\w\s'-]*)\" (?:\((?P<tier>(?:Rank|Tier): \d*)\))?[^(?:\r\n|\n|\r)]*$(?:\r\n|\n|\r)(?P<description>[^{]*?)(?=(?:\n\n))",
+    r"^{ (?:Master Crafted )?(?P<affix_type>Prefix|Suffix) Modifier \"(?P<affix_name>[^\"]+)\" (?:\((?P<tier>(?:Rank|Tier): \d+)\))?.*$\n(?P<description>.+?)(?=\n{|$)",
     re.MULTILINE
 )
 
