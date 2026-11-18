@@ -4,7 +4,7 @@ import os
 import pyautogui
 import yaml
 from . import decorators
-from .GuiModules.constants import CraftingTarget
+from .GuiModules.constants import CraftingTarget, MapModifier, MapStat
 
 def __point_representer(dumper: yaml.SafeDumper, data: pyautogui.Point) -> yaml.MappingNode:
     return dumper.represent_mapping(u'!Point', data._asdict())
@@ -51,19 +51,43 @@ class ConfigurationAppSettings(yaml.YAMLObject):
         self.enable_performance_logging: bool = enable_performance_logging
         super().__init__()
 
+DEFAULT_MAP_STAT_MINIMUM = 50
+
+def default_map_stat_filters() -> dict[str, dict]:
+    return {str(stat): {'enabled': False, 'minimum': DEFAULT_MAP_STAT_MINIMUM} for stat in MapStat}
+
+def default_map_modifier_filters() -> dict[str, bool]:
+    return {str(modifier): False for modifier in MapModifier}
+
+class Section(StrEnum):
+    """Collapsible sections of the main window."""
+    CONFIGURATION = 'configuration'
+    CRAFTING = 'crafting'
+    SCRIPT_LOG = 'script_log'
+
+def default_open_sections() -> dict[str, bool]:
+    return {str(section): True for section in Section}
+
 class ConfigurationLastState(yaml.YAMLObject):
     yaml_dumper = yaml.SafeDumper
     yaml_loader = yaml.SafeLoader
     yaml_tag = u'!LastState'
 
-    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, is_t17: bool, regex_string: str, max_currency_use: int, is_pre: bool, is_suff: bool) -> None:
+    def __init__(self, crafting_target: CraftingTarget, map_craft_amount: int, is_t17: bool, map_regex_string: str, gear_regex_string: str, max_currency_use: int, is_pre: bool, is_suff: bool, map_stat_filters: dict[str, dict], map_modifier_filters: dict[str, bool], open_sections: dict[str, bool]) -> None:
         self.crafting_target: CraftingTarget = crafting_target
         self.map_craft_amount: int = map_craft_amount
         self.is_t17: bool = is_t17
-        self.regex_string: str = regex_string
+        self.map_regex_string: str = map_regex_string
+        self.gear_regex_string: str = gear_regex_string
         self.max_currency_use: int = max_currency_use
         self.is_pre: bool = is_pre
         self.is_suff: bool = is_suff
+        # Keyed by MapStat value: {'enabled': bool, 'minimum': int}
+        self.map_stat_filters: dict[str, dict] = map_stat_filters
+        # Keyed by MapModifier value: whether the map has to contain it
+        self.map_modifier_filters: dict[str, bool] = map_modifier_filters
+        # Keyed by Section value: whether the section was expanded
+        self.open_sections: dict[str, bool] = open_sections
         super().__init__()
 
 class Configuration(yaml.YAMLObject):
@@ -83,7 +107,7 @@ class ConfigManager:
     DEFAULT_CONFIG: Configuration = Configuration(
         ConfigurationCoordinates(pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0), pyautogui.Point(0, 0)),
         ConfigurationAppSettings(0.03, False),
-        ConfigurationLastState(CraftingTarget.GEAR, 15, False, "", 10, False, False))
+        ConfigurationLastState(CraftingTarget.GEAR, 15, False, "", "", 10, False, False, default_map_stat_filters(), default_map_modifier_filters(), default_open_sections()))
 
     def __init__(self) -> None:
         if not os.path.isfile(self.CONFIG_PATH):
@@ -93,8 +117,40 @@ class ConfigManager:
 
     def __parse_config(self) -> Configuration:
         with open(self.CONFIG_PATH, mode='r', encoding='utf-8') as file:
-            return yaml.safe_load(file)
+            config: Configuration = yaml.safe_load(file)
+
+        self.__migrate_regex_string(config.last_state)
+        self.__fill_map_stat_filters(config.last_state)
+        self.__fill_map_modifier_filters(config.last_state)
+        config.last_state.open_sections = default_open_sections() | (getattr(config.last_state, 'open_sections', None) or {})
+        return config
+
+    @staticmethod
+    def __migrate_regex_string(last_state: ConfigurationLastState) -> None:
+        # Older configs shared a single regex between maps and gear, give it to the tab that was last used
+        if not hasattr(last_state, 'regex_string'):
+            return
+
+        legacy_regex: str = last_state.regex_string
+        del last_state.regex_string
+        last_state.map_regex_string = legacy_regex if last_state.crafting_target == CraftingTarget.MAPS else ""
+        last_state.gear_regex_string = legacy_regex if last_state.crafting_target == CraftingTarget.GEAR else ""
+        pass
     
+    @staticmethod
+    def __fill_map_stat_filters(last_state: ConfigurationLastState) -> None:
+        # Older configs have no stat filters, and newly added stats need an entry too
+        saved_filters: dict[str, dict] = getattr(last_state, 'map_stat_filters', None) or {}
+        last_state.map_stat_filters = default_map_stat_filters() | saved_filters
+        pass
+
+    @staticmethod
+    def __fill_map_modifier_filters(last_state: ConfigurationLastState) -> None:
+        # Older configs have no modifier filters, and newly added modifiers need an entry too
+        saved_filters: dict[str, bool] = getattr(last_state, 'map_modifier_filters', None) or {}
+        last_state.map_modifier_filters = default_map_modifier_filters() | saved_filters
+        pass
+
     def save_config(self, new_config: Configuration) -> None:
         with open(self.CONFIG_PATH, mode='w', encoding='utf-8') as file:
             yaml.safe_dump(data=new_config, stream=file, encoding='utf-8', sort_keys=False)

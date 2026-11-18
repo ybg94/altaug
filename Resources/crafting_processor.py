@@ -4,7 +4,8 @@ import logging
 import re
 import time
 import dearpygui.dearpygui as dpg
-from .GuiModules.constants import CraftingTarget
+from .GuiModules.constants import AffixMode, CraftingTarget, MapModifier, MapStat
+from .GuiModules import crafting_state
 from . import decorators
 from . import autogui
 from . import gui_tags
@@ -33,6 +34,10 @@ def __apply_craft(craft_func: Callable[..., None] | None, map_count: int | None 
 
     return item_info
 
+def __map_matches(item: item_processing.ItemInfo, regex: re.Pattern, is_regex_inverted: bool,
+                  stat_minimums: dict[MapStat, int], wanted_modifiers: set[MapModifier]) -> bool:
+    return item.match(regex, is_regex_inverted) and item.meets_map_stats(stat_minimums) and item.meets_map_modifiers(wanted_modifiers)
+
 def use_regex(regex_text: str, max_currency_use: int) -> None:
     logging.info(f"Using regex method with pattern: {regex_text}")
     regex: re.Pattern
@@ -42,20 +47,27 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
     else:
         regex = re.compile(regex_text, re.MULTILINE | re.IGNORECASE)
 
-    target = dpg.get_value(gui_tags.CRAFTING_TARGET_COMBO_TAG)
+    target = crafting_state.get_crafting_target()
     if (target == CraftingTarget.MAPS):
         map_amount = dpg.get_value(gui_tags.MAP_AMOUNT_INPUT_TAG)
         is_t17 = dpg.get_value(gui_tags.MAP_TYPE_CHECK)
         crating_function = autogui.use_alch if not is_t17 else autogui.use_chaos
         reset_function = autogui.use_scour if not is_t17 else None
+        stat_minimums = crafting_state.get_map_stat_minimums()
+        wanted_modifiers = crafting_state.get_wanted_map_modifiers()
         currency_used = 0
+
+        if stat_minimums:
+            logging.info("Map stat minimums: " + ", ".join(f"{stat} {minimum}%" for stat, minimum in stat_minimums.items()))
+        if wanted_modifiers:
+            logging.info("Map needs one of: " + ", ".join(sorted(wanted_modifiers)))
 
         for map_count in range(1, map_amount + 1):
             logging.info(f"Map {map_count}, Total currency used: {currency_used}")
 
             description = autogui.get_map_description(map_count)
             item_info = item_processing.ItemInfo(description)
-            if item_info.match(regex, is_regex_inverted):
+            if __map_matches(item_info, regex, is_regex_inverted, stat_minimums, wanted_modifiers):
                 logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
                 continue
 
@@ -66,7 +78,7 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
                 item = __apply_craft(craft_func=crating_function, map_count=map_count)
                 currency_used += 1
 
-                if item.match(regex, is_regex_inverted):
+                if __map_matches(item, regex, is_regex_inverted, stat_minimums, wanted_modifiers):
                     logging.info(f"Map {map_count} has matched the criteria, moving on to next map.")
                     break
 
@@ -81,8 +93,7 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
 
     elif (target == CraftingTarget.GEAR):
         item = item_processing.ItemInfo(autogui.get_item_advanced_description())
-        is_prefix_checked = dpg.get_value(gui_tags.AFFIX_PREFIX_CHECK)
-        is_suffix_checked = dpg.get_value(gui_tags.AFFIX_SUFFIX_CHECK)
+        affix_mode = crafting_state.get_affix_mode()
         if item.match(regex):
             logging.info(f"Item already has correct modifiers")
             return
@@ -96,12 +107,10 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
             if item.is_affixes_full():
                 continue
             
-            if is_prefix_checked:
-                if item.prefixes:
-                    continue
-            elif is_suffix_checked:
-                if item.suffixes:
-                    continue       
+            if affix_mode == AffixMode.PREFIX and item.prefixes:
+                continue
+            if affix_mode == AffixMode.SUFFIX and item.suffixes:
+                continue
 
             item = __apply_craft(autogui.use_aug)
             if item.match(regex):
@@ -112,7 +121,7 @@ def use_regex(regex_text: str, max_currency_use: int) -> None:
     pass
 
 def start_crafting() -> None:
-    regex_input: str = dpg.get_value(gui_tags.REGEX_INPUT_TAG)
+    regex_input: str = crafting_state.get_regex()
     max_currency_use: int = dpg.get_value(gui_tags.MAX_ATTEMPT_INPUT_TAG)
     if (len(regex_input) == 0):
         logging.info("No regex detected, ensure a regex is present before beginning crafting.")

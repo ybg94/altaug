@@ -1,0 +1,5 @@
+dearpygui==2.1.1
+pyautogui==0.9.54
+pyperclip==1.11.0
+PyYAML==6.0.3
+Pillow==12.1.0

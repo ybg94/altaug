@@ -7,8 +7,7 @@ import pyautogui
 from .. import gui_tags
 from ..config_manager import manager, Configuration
 
-CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
-IMAGES_DIR = os.path.join(CURRENT_DIR,"..","..", "src", "Images")
+IMAGES_DIR = os.path.join('src', 'Images')
 
 def load_images():
     with dpg.texture_registry(show=False):
@@ -132,7 +131,7 @@ def __set_pyautogui_pause() -> None:
     pyautogui.PAUSE = value
     pass
 
-def init(configuration_window_tag: int | str) -> None:
+def init(configuration_window_tag: int | str, default_open: bool = True) -> None:
     with dpg.window(tag=gui_tags.CONFIGURATION_INFO_MODAL_TAG, modal=True, show=False, no_title_bar=True, pos=(302, 70), width=314, height=60, no_resize=True, no_move=True):
         dpg.add_spacer(height=2)
         dpg.add_button(tag=gui_tags.CONFIGURATION_INFO_TEXT_TAG, enabled=False, width=300)
@@ -140,7 +139,7 @@ def init(configuration_window_tag: int | str) -> None:
         dpg.add_button(label="Press Esc to cancel", enabled=False, width=300)
         pass
 
-    with dpg.window(tag=configuration_window_tag, label="Configuration", no_close=True):
+    with dpg.collapsing_header(tag=configuration_window_tag, label="Configuration", default_open=default_open):
         dpg.add_text("Configure Coordinates:")
         
         with dpg.group(horizontal=True):

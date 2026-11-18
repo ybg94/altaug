@@ -10,29 +10,61 @@ coordinates: !Coordinates
     x: 1322
     y: 637
   alt: !Point
-    x: 110
+    x: 139
     y: 273
   aug: !Point
-    x: 224
-    y: 330
+    x: 199
+    y: 276
   alch: !Point
-    x: 494
+    x: 432
     y: 274
   scour: !Point
-    x: 431
+    x: 458
     y: 400
   chaos: !Point
-    x: 551
-    y: 272
+    x: 489
+    y: 271
 app_settings: !AppSettings
   pyautogui_pause: 0.03999999910593033
   enable_pyautogui_failsafe: null
   enable_performance_logging: true
 last_state: !LastState
   crafting_target: Maps
-  map_craft_amount: 3
+  map_craft_amount: 10
   is_t17: false
-  regex_string: '!te of|ents$|ur$|m resistances$|from$|t reg'
-  max_currency_use: 500
+  max_currency_use: 4000
   is_pre: true
   is_suff: false
+  map_regex_string: '!s damage$|lier$|ss are|rch$|teo|ills$|m resistances$|t reg|te
+    of|ds on|s of co|ur$|m energy shield$|id el'
+  gear_regex_string: Runic
+  map_stat_filters:
+    Item Quantity:
+      enabled: false
+      minimum: 60
+    Monster Pack Size:
+      enabled: false
+      minimum: 50
+    More Maps:
+      enabled: false
+      minimum: 70
+    More Currency:
+      enabled: false
+      minimum: 50
+    More Scarabs:
+      enabled: false
+      minimum: 50
+  map_modifier_filters:
+    Area contains an Evocator of K'Tash: false
+    Area contains an Evocator of Beidat: false
+    Area contains an Evocator of Ghorr: false
+    Area contains a buried Pandemonium Sentinel: false
+    Area contains a buried Stalker Sentinel: false
+    Area contains a buried Apex Sentinel: false
+    Area contains a Mirror of Delirium: false
+    Area contains a Mirage: false
+    Area contains the Viridian Wildwood: false
+  open_sections:
+    configuration: false
+    crafting: true
+    script_log: false

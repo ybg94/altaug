@@ -1,80 +1,72 @@
-import re
 import dearpygui.dearpygui as dpg
 from . import constants
+from . import crafting_state
 from . import elements
 from .. import gui_tags
-from .. import affix_library
+from .. import map_mod_library
 
-affix_data: affix_library.AffixLibrary
-selected_prefixes: set[str] = set()
-selected_suffixes: set[str] = set()
+MODAL_WIDTH = 740
+MODAL_HEIGHT = 600
+
+map_mods: list[map_mod_library.MapMod] = []
+mod_checkboxes: list[int | str] = []
+mod_rows: list[int | str] = []
+selected_mods: set[int] = set()
+
+def __build_regex() -> str:
+    # Several mods share the same regex fragment, keep the first occurrence only
+    parts = list(dict.fromkeys(map_mods[index].regex for index in sorted(selected_mods)))
+    if not parts:
+        return ""
+
+    # Selected mods are the ones to avoid, so crafting stops when none of them match
+    return "!" + "|".join(parts)
 
 def __rebuild_regex_preview() -> None:
-    parts = [f"^{re.escape(name)}" for name in selected_prefixes] + [f"{re.escape(name)}$" for name in selected_suffixes]
-    regex_text = "|".join(parts)
+    regex_text = __build_regex()
 
     dpg.set_value(gui_tags.REGEX_WIZARD_REGEX_PREVIEW_TAG, regex_text)
-    dpg.configure_item(gui_tags.REGEX_WIZARD_OK_TAG, show=len(parts) > 0)
+    dpg.set_value(gui_tags.REGEX_WIZARD_SELECTED_COUNT_TAG, f"{len(selected_mods)} mods selected, {len(regex_text)} characters")
+    dpg.configure_item(gui_tags.REGEX_WIZARD_OK_TAG, enabled=len(selected_mods) > 0)
     pass
 
-def __affix_toggled(sender, is_checked: bool, user_data: tuple[bool, str]) -> None:
-    is_prefix, name = user_data
-    target_set = selected_prefixes if is_prefix else selected_suffixes
-
-    if is_checked:
-        target_set.add(name)
+def __set_selected(index: int, is_selected: bool) -> None:
+    if is_selected:
+        selected_mods.add(index)
     else:
-        target_set.discard(name)
+        selected_mods.discard(index)
+    dpg.set_value(mod_checkboxes[index], is_selected)
+    pass
+
+def __is_mod_available(mod: map_mod_library.MapMod) -> bool:
+    return not mod.nightmare_only or dpg.get_value(gui_tags.REGEX_WIZARD_NIGHTMARE_CHECK_TAG)
+
+def __mod_toggled(sender, is_checked: bool, index: int) -> None:
+    __set_selected(index, is_checked)
+    __rebuild_regex_preview()
+    pass
+
+def __nightmare_toggled(sender, is_nightmare: bool) -> None:
+    for index, mod in enumerate(map_mods):
+        is_available = __is_mod_available(mod)
+        dpg.configure_item(mod_rows[index], show=is_available)
+        if not is_available:
+            __set_selected(index, False)
 
     __rebuild_regex_preview()
     pass
 
-def __populate_affix_list(filter_tag: str, names: list[str], is_prefix: bool) -> None:
-    dpg.delete_item(filter_tag, children_only=True)
-    for name in sorted(names):
-        dpg.add_selectable(parent=filter_tag, label=name, filter_key=name, callback=__affix_toggled, user_data=(is_prefix, name))
-    pass
-
-def __reset_selection() -> None:
-    selected_prefixes.clear()
-    selected_suffixes.clear()
-
-    dpg.set_value(gui_tags.REGEX_WIZARD_PREFIX_SEARCH_TAG, "")
-    dpg.set_value(gui_tags.REGEX_WIZARD_SUFFIX_SEARCH_TAG, "")
-    dpg.set_value(gui_tags.REGEX_WIZARD_PREFIX_FILTER_TAG, "")
-    dpg.set_value(gui_tags.REGEX_WIZARD_SUFFIX_FILTER_TAG, "")
+def __clear_selection() -> None:
+    for index in list(selected_mods):
+        __set_selected(index, False)
 
     __rebuild_regex_preview()
-    pass
-
-def __type_selected(sender, item_type: str) -> None:
-    category = dpg.get_value(gui_tags.REGEX_WIZARD_CATEGORY_COMBO_TAG)
-    affixes = affix_data[category][item_type]
-
-    __populate_affix_list(gui_tags.REGEX_WIZARD_PREFIX_FILTER_TAG, affixes.get('prefixes', []), is_prefix=True)
-    __populate_affix_list(gui_tags.REGEX_WIZARD_SUFFIX_FILTER_TAG, affixes.get('suffixes', []), is_prefix=False)
-    dpg.configure_item(gui_tags.REGEX_WIZARD_SELECTION_GROUP_TAG, show=True)
-
-    __reset_selection()
-    pass
-
-def __category_selected(sender, category: str) -> None:
-    dpg.configure_item(gui_tags.REGEX_WIZARD_TYPE_COMBO_TAG, show=True, items=list(affix_data[category].keys()))
-    dpg.set_value(gui_tags.REGEX_WIZARD_TYPE_COMBO_TAG, constants.TYPE_COMBO_DEFAULT)
-
-    dpg.configure_item(gui_tags.REGEX_WIZARD_SELECTION_GROUP_TAG, show=False)
-    __reset_selection()
     pass
 
 def __confirm_selection() -> None:
-    category = dpg.get_value(gui_tags.REGEX_WIZARD_CATEGORY_COMBO_TAG)
-    item_type = dpg.get_value(gui_tags.REGEX_WIZARD_TYPE_COMBO_TAG)
-    crafting_target = constants.CATEGORY_TO_CRAFTING_TARGET_LOOKUP[category]
-
-    dpg.set_value(gui_tags.REGEX_INPUT_TAG, dpg.get_value(gui_tags.REGEX_WIZARD_REGEX_PREVIEW_TAG))
-    dpg.set_value(gui_tags.CRAFTING_TARGET_COMBO_TAG, crafting_target)
-    dpg.configure_item(gui_tags.MAP_HIDDEN_GROUP_TAG, show=True if crafting_target == constants.CraftingTarget.MAPS else False)
-    dpg.set_value(gui_tags.MAP_TYPE_CHECK, item_type == constants.NIGHTMARE_MAP_TYPE)
+    dpg.set_value(gui_tags.MAP_REGEX_INPUT_TAG, __build_regex())
+    dpg.set_value(gui_tags.MAP_TYPE_CHECK, dpg.get_value(gui_tags.REGEX_WIZARD_NIGHTMARE_CHECK_TAG))
+    crafting_state.set_crafting_target(constants.CraftingTarget.MAPS)
     dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=False)
     pass
 
@@ -82,43 +74,62 @@ def __cancel_wizard() -> None:
     dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=False)
     pass
 
+def show() -> None:
+    # Match the map type currently selected in the crafting window
+    dpg.set_value(gui_tags.REGEX_WIZARD_NIGHTMARE_CHECK_TAG, dpg.get_value(gui_tags.MAP_TYPE_CHECK))
+    __nightmare_toggled(None, dpg.get_value(gui_tags.MAP_TYPE_CHECK))
+
+    viewport_width = dpg.get_viewport_client_width()
+    viewport_height = dpg.get_viewport_client_height()
+    pos = [max(0, (viewport_width - MODAL_WIDTH) // 2), max(0, (viewport_height - MODAL_HEIGHT) // 2)]
+    dpg.configure_item(gui_tags.REGEX_WIZARD_MODAL_TAG, show=True, pos=pos)
+    pass
+
+def __init_mod_table() -> None:
+    with dpg.table(tag=gui_tags.REGEX_WIZARD_TABLE_TAG, header_row=False, policy=dpg.mvTable_SizingFixedFit,
+                   row_background=True, borders_innerH=True, scrollY=True, height=360):
+        dpg.add_table_column(width_fixed=True)
+        dpg.add_table_column(width_stretch=True)
+
+        for index, mod in enumerate(map_mods):
+            display_text = mod.display_text
+            with dpg.table_row(filter_key=display_text) as row:
+                mod_checkboxes.append(dpg.add_checkbox(callback=__mod_toggled, user_data=index))
+                dpg.add_text(display_text, wrap=MODAL_WIDTH - 100)
+            mod_rows.append(row)
+    pass
+
 def init() -> None:
-    global affix_data
-    affix_data = affix_library.read()
+    global map_mods
+    map_mods = map_mod_library.read()
 
-    with dpg.window(tag=gui_tags.REGEX_WIZARD_MODAL_TAG, width=560, height=500, modal=True, show=False, no_title_bar=True, no_resize=True):
-        dpg.add_combo(tag=gui_tags.REGEX_WIZARD_CATEGORY_COMBO_TAG, items=list(affix_data.keys()), default_value=constants.CATEGORY_COMBO_DEFAULT, callback=__category_selected, width=200)
-        dpg.add_combo(tag=gui_tags.REGEX_WIZARD_TYPE_COMBO_TAG, default_value=constants.TYPE_COMBO_DEFAULT, show=False, callback=__type_selected, width=200)
-
-        dpg.add_spacer(height=8)
-
-        with dpg.group(tag=gui_tags.REGEX_WIZARD_SELECTION_GROUP_TAG, show=False):
-            with dpg.group(horizontal=True):
-                with dpg.group():
-                    dpg.add_text("Prefixes")
-                    dpg.add_input_text(tag=gui_tags.REGEX_WIZARD_PREFIX_SEARCH_TAG, hint="Search prefixes...", width=260,
-                                        callback=lambda sender, search_text: dpg.set_value(gui_tags.REGEX_WIZARD_PREFIX_FILTER_TAG, search_text))
-                    with dpg.child_window(width=260, height=260):
-                        with dpg.filter_set(tag=gui_tags.REGEX_WIZARD_PREFIX_FILTER_TAG):
-                            pass
-
-                with dpg.group():
-                    dpg.add_text("Suffixes")
-                    dpg.add_input_text(tag=gui_tags.REGEX_WIZARD_SUFFIX_SEARCH_TAG, hint="Search suffixes...", width=260,
-                                        callback=lambda sender, search_text: dpg.set_value(gui_tags.REGEX_WIZARD_SUFFIX_FILTER_TAG, search_text))
-                    with dpg.child_window(width=260, height=260):
-                        with dpg.filter_set(tag=gui_tags.REGEX_WIZARD_SUFFIX_FILTER_TAG):
-                            pass
-                pass
-
-            dpg.add_spacer(height=8)
-            dpg.add_text("Generated RegEx:")
-            dpg.add_input_text(tag=gui_tags.REGEX_WIZARD_REGEX_PREVIEW_TAG, readonly=True, multiline=True, width=520, height=40)
-            pass
-
-        dpg.add_spacer(height=8)
+    with dpg.window(tag=gui_tags.REGEX_WIZARD_MODAL_TAG, label="Map mod RegEx generator", width=MODAL_WIDTH, height=MODAL_HEIGHT,
+                    modal=True, show=False, no_resize=True, no_collapse=True, on_close=__cancel_wizard):
+        elements.add_hint_text("Tick the map mods you want to avoid. Crafting stops once a map has none of them.")
+        dpg.add_spacer(height=4)
 
         with dpg.group(horizontal=True):
-            elements.add_button(tag=gui_tags.REGEX_WIZARD_OK_TAG, label="OK", show=False, callback=__confirm_selection)
-            elements.add_button(label="Cancel", callback=__cancel_wizard)
-            pass
+            dpg.add_input_text(tag=gui_tags.REGEX_WIZARD_SEARCH_TAG, hint="Search mods...", width=300,
+                               callback=lambda sender, search_text: dpg.set_value(gui_tags.REGEX_WIZARD_TABLE_TAG, search_text))
+            dpg.add_spacer(width=16)
+            dpg.add_checkbox(tag=gui_tags.REGEX_WIZARD_NIGHTMARE_CHECK_TAG, label="Nightmare map (T17)", callback=__nightmare_toggled)
+            dpg.add_spacer(width=16)
+            dpg.add_button(label="Clear selection", callback=__clear_selection)
+
+        dpg.add_spacer(height=4)
+        __init_mod_table()
+
+        dpg.add_spacer(height=4)
+        with dpg.group(horizontal=True):
+            dpg.add_text("Generated RegEx")
+            elements.add_hint_text("", tag=gui_tags.REGEX_WIZARD_SELECTED_COUNT_TAG)
+        with dpg.child_window(width=-1, height=60):
+            dpg.add_text(tag=gui_tags.REGEX_WIZARD_REGEX_PREVIEW_TAG, wrap=MODAL_WIDTH - 50)
+
+        dpg.add_spacer(height=4)
+        with dpg.group(horizontal=True):
+            elements.add_button(tag=gui_tags.REGEX_WIZARD_OK_TAG, label="Use this RegEx", width=160, enabled=False, callback=__confirm_selection)
+            elements.add_button(label="Cancel", width=100, callback=__cancel_wizard)
+
+    __rebuild_regex_preview()
+    pass
